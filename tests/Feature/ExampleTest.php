@@ -14,6 +14,7 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertOk();
+        $response->assertRedirect();
+        $response->assertRedirectToRoute('filament.admin.pages.dashboard');
     }
 }
