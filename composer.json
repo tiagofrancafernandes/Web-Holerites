@@ -6,14 +6,23 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
+        "barryvdh/laravel-dompdf": "^2.0",
         "guzzlehttp/guzzle": "^7.2",
+        "laravel/cashier": "^15.0",
         "laravel/framework": "^10.10",
+        "laravel/helpers": "^1.7",
         "laravel/sanctum": "^3.3",
-        "laravel/tinker": "^2.8"
+        "laravel/socialite": "^5.11",
+        "laravel/tinker": "^2.8",
+        "laravel/ui": "^4.3",
+        "league/flysystem-aws-s3-v3": "^3.22",
+        "league/flysystem-path-prefixing": "^3.16",
+        "predis/predis": "^2.2"
     },
     "require-dev": {
+        "barryvdh/laravel-ide-helper": "^2.13",
         "fakerphp/faker": "^1.9.1",
-        "laravel/pint": "^1.0",
+        "laravel/pint": "^1.13",
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^7.0",
