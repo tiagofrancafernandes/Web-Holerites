@@ -12,10 +12,16 @@ class RedirectController extends Controller
         return redirect()->route('filament.admin.pages.dashboard');
     }
 
+    public function adminLogin(Request $request)
+    {
+        return redirect()->route('filament.admin.auth.login');
+    }
+
     public static function routes()
     {
         Route::name('redirect.')->group(function () {
             Route::get('_', [static::class, 'adminDashboard'])->name('toAdmin');
+            Route::get('/login', [RedirectController::class, 'adminLogin'])->name('toLogin');
         });
     }
 }
