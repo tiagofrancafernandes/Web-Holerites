@@ -10,6 +10,9 @@
     "require": {
         "php": "^8.1",
         "barryvdh/laravel-dompdf": "^2.0",
+        "codeat3/blade-fluentui-system-icons": "^1.32",
+        "davidhsianturi/blade-bootstrap-icons": "^1.4",
+        "doctrine/dbal": "^3.7",
         "filament/filament": "^3.1",
         "guzzlehttp/guzzle": "^7.2",
         "hasnayeen/themes": "*",
@@ -22,7 +25,8 @@
         "laravel/ui": "^4.3",
         "league/flysystem-aws-s3-v3": "^3.22",
         "league/flysystem-path-prefixing": "^3.16",
-        "predis/predis": "^2.2"
+        "predis/predis": "^2.2",
+        "ryangjchandler/blade-tabler-icons": "^2.1"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.13",

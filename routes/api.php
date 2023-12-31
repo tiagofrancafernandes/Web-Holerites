@@ -15,3 +15,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth:sanctum')->get('/user', fn (Request $request) => $request->user());
+
+Route::get('fake/orders/details', function () {
+    return [
+        'id' => rand(1, 450),
+        'title' => fake()->words(3, true),
+        'status' => 1,
+    ];
+})->name('orders.details');
