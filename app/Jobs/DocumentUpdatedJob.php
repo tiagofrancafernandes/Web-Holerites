@@ -7,10 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Holerite;
+use App\Models\Document;
 use App\Models\User;
 
-class HoleriteUpdatedJob implements ShouldQueue
+class DocumentUpdatedJob implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -21,7 +21,7 @@ class HoleriteUpdatedJob implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public Holerite $order,
+        public Document $order,
         public ?User $user = null,
         public array $newData = [],
         public array $oldData = [],

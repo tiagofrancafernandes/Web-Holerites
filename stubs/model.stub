@@ -12,6 +12,11 @@ class {{ class }} extends Model
     use SoftDeletes;
 
     /**
+     * @var string
+     */
+    // protected $table = '';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

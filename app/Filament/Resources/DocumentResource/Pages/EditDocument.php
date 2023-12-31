@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\HoleriteResource\Pages;
+namespace App\Filament\Resources\DocumentResource\Pages;
 
-use App\Filament\Resources\HoleriteResource;
+use App\Filament\Resources\DocumentResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditHolerite extends EditRecord
+class EditDocument extends EditRecord
 {
-    protected static string $resource = HoleriteResource::class;
+    protected static string $resource = DocumentResource::class;
 
     protected function getHeaderActions(): array
     {

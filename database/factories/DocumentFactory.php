@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Holerite>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Document>
  */
-class HoleriteFactory extends Factory
+class DocumentFactory extends Factory
 {
     /**
      * Define the model's default state.
