@@ -50,7 +50,8 @@ class PermissionsRelationManager extends RelationManager
                 // Tables\Actions\EditAction::make()
                 //     ->label(static::getResource()::getActionLabel('edit')),
                 Tables\Actions\DetachAction::make(),
-                // Tables\Actions\DeleteAction::make(),
+                // Tables\Actions\DeleteAction::make()
+                //     ->label(static::getActionLabel('delete')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -191,7 +191,8 @@ class DocumentCategoryResource extends Resource
                 Tables\Actions\EditAction::make()
                     ->label(static::getActionLabel('edit')),
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                ->label(static::getActionLabel('delete')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

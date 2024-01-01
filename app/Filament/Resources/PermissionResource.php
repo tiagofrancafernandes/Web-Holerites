@@ -100,7 +100,8 @@ class PermissionResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label(static::getActionLabel('edit')),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                ->label(static::getActionLabel('delete')),
                 Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([

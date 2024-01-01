@@ -78,7 +78,8 @@ class RoleResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 // Tables\Actions\EditAction::make()
                 //     ->label(static::getResource()::getActionLabel('edit')),
-                // Tables\Actions\DeleteAction::make(),
+                // Tables\Actions\DeleteAction::make()
+                //     ->label(static::getActionLabel('delete')),
                 // Tables\Actions\CreateAction::make()
                 //     ->label(static::getResource()::getActionLabel('create')),
             ])

@@ -4,6 +4,42 @@ namespace App\Filament\Resources\Traits;
 
 trait ModelLabel
 {
+    public static function getTranslatedLabel(string $key, string $parentKey, ?string $model = null): string
+    {
+        $model ??= str(
+            method_exists(static::class, 'getModel') ? static::getModel() : ''
+        )
+            ->afterLast('\\')
+            ->toString();
+
+        $value = __(
+            str($model)
+                ->afterLast('\\')
+                ->prepend('models.')
+                ->append(".{$parentKey}")
+                ->append(".{$key}")
+                ->toString()
+        );
+
+        if (!str($value)->startsWith('models.')) {
+            return $value;
+        }
+
+        $value = __(
+            str('models')
+                ->append('.fallback')
+                ->append(".{$parentKey}")
+                ->append(".{$key}")
+                ->toString()
+        );
+
+        if (!str($value)->startsWith('models.')) {
+            return $value;
+        }
+
+        return __(str($key)->headline()->title()->toString());
+    }
+
     public static function getModelLabel(): string
     {
         return __(
@@ -37,59 +73,39 @@ trait ModelLabel
         );
     }
 
-    public static function getActionLabel(string $action): string
+    public static function getActionLabel(string $key, string|null $model = null): string
     {
-        $value = __(
-            str(static::getModel())
-                ->afterLast('\\')
-                ->prepend('models.')
-                ->append('.actions')
-                ->append(".{$action}")
-                ->toString()
-        );
-
-        return str($value)->startsWith(
-            str(static::getModel())
-                ->afterLast('\\')
-                ->prepend('models.')
-                ->append('.actions')
-                ->toString()
-        ) ? __(str($action)->title()->toString()) : $value;
-    }
-
-    public static function getTableAttributeLabel(string $attribute): string
-    {
-        return __(
-            str(static::getModel())
-                ->afterLast('\\')
-                ->prepend('models.')
-                ->append('.table')
-                ->append(".{$attribute}")
-                ->toString()
+        return static::getTranslatedLabel(
+            parentKey: 'actions',
+            key: $key,
+            model: $model,
         );
     }
 
-    public static function getFormAttributeLabel(string $attribute): string
+    public static function getTableAttributeLabel(string $key, string|null $model = null): string
     {
-        return __(
-            str(static::getModel())
-                ->afterLast('\\')
-                ->prepend('models.')
-                ->append('.form')
-                ->append(".{$attribute}")
-                ->toString()
+        return static::getTranslatedLabel(
+            parentKey: 'table',
+            key: $key,
+            model: $model,
         );
     }
 
-    public static function getFilterLabel(string $filter): string
+    public static function getFormAttributeLabel(string $key, string|null $model = null): string
     {
-        return __(
-            str(static::getModel())
-                ->afterLast('\\')
-                ->prepend('models.')
-                ->append('.filters')
-                ->append(".{$filter}")
-                ->toString()
+        return static::getTranslatedLabel(
+            parentKey: 'form',
+            key: $key,
+            model: $model,
+        );
+    }
+
+    public static function getFilterLabel(string $key, string|null $model = null): string
+    {
+        return static::getTranslatedLabel(
+            parentKey: 'filters',
+            key: $key,
+            model: $model,
         );
     }
 

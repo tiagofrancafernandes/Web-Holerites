@@ -1,11 +1,29 @@
 <?php
 
 return [
-    'general' => [
-        'id' => 'ID',
-        'created_at' => 'Criado em',
-        'updated_at' => 'Atualizado em',
-        'deleted_at' => 'Inativado em',
+    'fallback' => [
+        'actions' => [
+            'create' => 'Criar',
+            'view-mode' => 'Modo de visualização',
+            'edit-mode' => 'Modo de edição',
+            'view' => 'Ver',
+        ],
+        'table' => [
+            'id' => 'ID',
+            'name' => 'Nome',
+            'slug' => 'Slug',
+            'created_at' => 'Criado em',
+            'updated_at' => 'Atualizado em',
+            'deleted_at' => 'Inativado em',
+        ],
+        'form' => [
+            'id' => 'ID',
+            'name' => 'Nome',
+            'slug' => 'Slug',
+        ],
+        'filters' => [
+            //
+        ],
     ],
     'Document' => [
         'modelLabel' => 'Documento',
@@ -117,14 +135,16 @@ return [
         'titleCaseModelLabel' => 'Usuário',
         'pluralModelLabel' => 'Usuários',
         'actions' => [
-            'create' => 'Cadastrar novo usuário',
+            'create' => 'Criar novo usuário',
+            'delete' => 'Inativar usuário',
+            'view-mode' => 'Modo de visualização',
         ],
         'table' => [
             'id' => 'ID',
             'name' => 'Nome',
             'email' => 'E-mail',
             'password' => 'Senha',
-            'status' => 'Status',
+            'status' => 'Ativo?',
             'language' => 'Idioma',
             'created_at' => 'Criado em',
             'updated_at' => 'Atualizado em',
@@ -134,8 +154,10 @@ return [
             'name' => 'Nome',
             'email' => 'E-mail',
             'password' => 'Senha',
+            'password_confirmation' => 'Confirmação da senha',
             'status' => 'Status',
             'language' => 'Idioma',
+            'email_verified_at' => 'E-mail verificado em',
         ],
         'filters' => [
             'status' => 'Status',
@@ -177,7 +199,8 @@ return [
         'titleCaseModelLabel' => 'Grupo de usuários',
         'pluralModelLabel' => 'Grupo de usuários',
         'actions' => [
-            'create' => 'Cadastrar Grupo de usuários',
+            'create' => 'Novo grupo',
+            'attach' => 'Vincular usuário',
         ],
         'table' => [
             'id' => 'ID',

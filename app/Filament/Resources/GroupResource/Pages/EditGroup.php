@@ -13,7 +13,12 @@ class EditGroup extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\ViewAction::make()
+                ->label(GroupResource::getActionLabel('view-mode')),
+            Actions\CreateAction::make()
+                ->label(GroupResource::getActionLabel('create')),
+            Actions\DeleteAction::make()
+                ->label(GroupResource::getActionLabel('delete')),
         ];
     }
 }

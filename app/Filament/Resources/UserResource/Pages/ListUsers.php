@@ -5,6 +5,7 @@ namespace App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Database\Eloquent\Model;
 
 class ListUsers extends ListRecords
 {
@@ -14,7 +15,13 @@ class ListUsers extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label(static::getResource()::getActionLabel('create')),
+                ->label(static::getResource()::getActionLabel('create'))
+                ->hidden(
+                    fn(): bool => !auth()->user()->canAny([
+                        'user::create',
+                        'user::edit',
+                    ])
+                ),
         ];
     }
 }
