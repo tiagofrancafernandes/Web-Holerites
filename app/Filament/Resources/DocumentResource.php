@@ -31,6 +31,8 @@ use App\Models\DocumentCategory;
 use Filament\Forms\Components\FileUpload;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Filament\Infolists\Components\Section;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\DatePicker;
 
 class DocumentResource extends Resource
 {
@@ -142,17 +144,17 @@ class DocumentResource extends Resource
                             ->collapsible()
                             ->collapsed(),
 
-                        Forms\Components\Section::make('Visibilidade')
-                            ->schema([
-                                Forms\Components\Checkbox::make('backorder')
-                                    ->label('This product can be returned'),
+                        // Forms\Components\Section::make('Visibilidade')
+                        //     ->schema([
+                        //         Forms\Components\Checkbox::make('backorder')
+                        //             ->label('This product can be returned'),
 
-                                Forms\Components\Checkbox::make('requires_shipping')
-                                    ->label('This product will be shipped'),
-                            ])
-                            ->columns(2)
-                            ->collapsible()
-                            ->collapsed(),
+                        //         Forms\Components\Checkbox::make('requires_shipping')
+                        //             ->label('This product will be shipped'),
+                        //     ])
+                        //     ->columns(2)
+                        //     ->collapsible()
+                        //     ->collapsed(),
                     ])
                     ->columnSpan(['lg' => 2]),
 
@@ -319,15 +321,47 @@ class DocumentResource extends Resource
                     ),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->label(
-                        static::getFilterLabel('status')
-                    )
-                    ->options([
-                        0 => 'Waiting',
-                        1 => 'In conversation',
-                        2 => 'Waiting contact',
-                    ]),
+                // Tables\Filters\SelectFilter::make('status')
+                //     ->label(
+                //         static::getFilterLabel('status')
+                //     )
+                //     ->options([
+                //         0 => 'Waiting',
+                //         1 => 'In conversation',
+                //         2 => 'Waiting contact',
+                //     ]),
+
+                // Tables\Filters\SelectFilter::make('category')
+                //     ->label('Categoria')
+                //     ->options(
+                //         fn (): array => DocumentCategory::query()
+                //             ->select(['name', 'id'])
+                //             ?->distinct()
+                //             ?->pluck('name', 'id')
+                //             ->unique()
+                //             ?->all()
+                //     )
+                //     ->native(false)
+                //     ->searchable(),
+
+                Filter::make('created_at')
+                    ->form([
+                        DatePicker::make('created_from')
+                            ->label('Criado de'),
+                        DatePicker::make('created_until')
+                            ->label('Criado até'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
