@@ -35,4 +35,12 @@ class Role extends \Spatie\Permission\Models\Role
     {
         return $this->permissions()->count();
     }
+
+    public static function clearCache()
+    {
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app('cache')
+            ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
+            ->forget(config('permission.cache.key'));
+    }
 }

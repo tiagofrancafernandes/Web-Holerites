@@ -5,6 +5,7 @@ namespace App\Filament\Resources\RoleResource\Pages;
 use App\Filament\Resources\RoleResource;
 use Filament\Resources\Pages\CreateRecord;
 use App\Filament\Concerns\Default\DefaultPageActions;
+use App\Models\Role;
 
 class CreateRole extends CreateRecord
 {
@@ -20,6 +21,6 @@ class CreateRole extends CreateRecord
 
     protected function afterCreate(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        Role::clearCache();
     }
 }

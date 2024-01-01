@@ -5,6 +5,7 @@ namespace App\Filament\Resources\RoleResource\Pages;
 use App\Filament\Resources\RoleResource;
 use Filament\Resources\Pages\EditRecord;
 use App\Filament\Concerns\Default\DefaultPageActions;
+use App\Models\Role;
 
 class EditRole extends EditRecord
 {
@@ -20,6 +21,6 @@ class EditRole extends EditRecord
 
     protected function afterSave(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        Role::clearCache();
     }
 }
