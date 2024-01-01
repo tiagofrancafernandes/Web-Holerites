@@ -152,11 +152,17 @@ class CityResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->filtersTriggerAction(
+                fn (\Filament\Tables\Actions\Action $action) => $action
+                    ->button()
+                    ->label(__('Filter')),
+            )
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label(static::getActionLabel('edit'))
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

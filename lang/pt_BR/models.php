@@ -150,7 +150,7 @@ return [
         ],
         'table' => [
             'id' => 'ID',
-            'name' => 'Name',
+            'name' => 'Nome',
             'city_code' => 'Código IBGE da cidade',
             'state_code' => 'UF do estado',
             'state_name' => 'Nome do estado',
@@ -161,12 +161,35 @@ return [
             'deleted_at' => 'Inativado em',
         ],
         'form' => [
-            'name' => 'Name',
+            'name' => 'Nome',
             'city_code' => 'Cidade code',
             'state_code' => 'State code',
             'state_name' => 'State name',
             'state_local_name' => 'State local name',
             'country_iso_code' => 'Country ISO code',
+        ],
+        'filters' => [
+            'status' => 'Status',
+        ],
+    ],
+    'Group' => [
+        'modelLabel' => 'Grupo de usuários',
+        'titleCaseModelLabel' => 'Grupo de usuários',
+        'pluralModelLabel' => 'Grupo de usuários',
+        'actions' => [
+            'create' => 'Cadastrar Grupo de usuários',
+        ],
+        'table' => [
+            'id' => 'ID',
+            'name' => 'Nome',
+            'slug' => 'Slug',
+            'created_at' => 'Criado em',
+            'updated_at' => 'Atualizado em',
+            'deleted_at' => 'Inativado em',
+        ],
+        'form' => [
+            'name' => 'Nome',
+            'slug' => 'Slug',
         ],
         'filters' => [
             'status' => 'Status',

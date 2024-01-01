@@ -39,7 +39,7 @@ trait ModelLabel
 
     public static function getActionLabel(string $action): string
     {
-        return __(
+        $value = __(
             str(static::getModel())
                 ->afterLast('\\')
                 ->prepend('models.')
@@ -47,6 +47,14 @@ trait ModelLabel
                 ->append(".{$action}")
                 ->toString()
         );
+
+        return str($value)->startsWith(
+            str(static::getModel())
+                ->afterLast('\\')
+                ->prepend('models.')
+                ->append('.actions')
+                ->toString()
+        ) ? __(str($action)->title()->toString()) : $value;
     }
 
     public static function getTableAttributeLabel(string $attribute): string

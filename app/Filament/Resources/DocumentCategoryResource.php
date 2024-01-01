@@ -58,9 +58,7 @@ class DocumentCategoryResource extends Resource
                 ->columnSpanFull(),
 
             Forms\Components\TextInput::make('name')
-                ->label(
-                    static::getTableAttributeLabel('name')
-                )
+                ->label(static::getTableAttributeLabel('name'))
                 ->required()
                 ->maxLength(255)
                 ->live(onBlur: true)
@@ -181,11 +179,17 @@ class DocumentCategoryResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->filtersTriggerAction(
+                fn (\Filament\Tables\Actions\Action $action) => $action
+                    ->button()
+                    ->label(__('Filter')),
+            )
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label(static::getActionLabel('edit')),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

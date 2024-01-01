@@ -34,6 +34,11 @@ class PermissionsRelationManager extends RelationManager
                         isGlobal: false,
                     ),
             ])
+            ->filtersTriggerAction(
+                fn (\Filament\Tables\Actions\Action $action) => $action
+                    ->button()
+                    ->label(__('Filter')),
+            )
             ->filters([
                 //
             ])
@@ -42,7 +47,8 @@ class PermissionsRelationManager extends RelationManager
                 Tables\Actions\AttachAction::make(),
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make()
+                //     ->label(static::getResource()::getActionLabel('edit')),
                 Tables\Actions\DetachAction::make(),
                 // Tables\Actions\DeleteAction::make(),
             ])

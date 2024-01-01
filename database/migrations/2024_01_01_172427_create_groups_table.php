@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('groups', function (Blueprint $table) {
             $table->id()->index();
             $table->string('name')->index();
+            $table->string('slug')->unique()->index();
             $table->timestamps();
             $table->softDeletes();
 

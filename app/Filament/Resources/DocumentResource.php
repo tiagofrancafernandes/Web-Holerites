@@ -320,6 +320,11 @@ class DocumentResource extends Resource
                         isToggledHiddenByDefault: true,
                     ),
             ])
+            ->filtersTriggerAction(
+                fn (\Filament\Tables\Actions\Action $action) => $action
+                    ->button()
+                    ->label(__('Filter')),
+            )
             ->filters([
                 // Tables\Filters\SelectFilter::make('status')
                 //     ->label(
@@ -364,7 +369,8 @@ class DocumentResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label(static::getActionLabel('edit')),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\Action::make('open_file')
                     ->label('Abrir anexo')
@@ -421,6 +427,7 @@ class DocumentResource extends Resource
             'create' => Pages\CreateDocument::route('/create'),
             'edit' => Pages\EditDocument::route('/{record}/edit'),
             'details' => Pages\ViewDocument::route('/{record}/view'),
+            // 'view' => Pages\ViewDocument::route('/{record}/view'),
         ];
     }
 
