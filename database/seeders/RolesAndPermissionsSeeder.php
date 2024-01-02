@@ -103,8 +103,13 @@ class RolesAndPermissionsSeeder extends Seeder
             ]);
         });
 
+        $allPermissions = Permission::all();
+
         $superAdminRole = Role::firstOrCreate(['name' => 'super-admin']);
         // $superAdminRole->givePermissionTo(Permission::all());
-        $superAdminRole->syncPermissions(Permission::all());
+        $superAdminRole->syncPermissions($allPermissions);
+
+        // User::where('email', 'like', 'admin@mail.com')->first()?->permissions()->sync($allPermissions);
+        User::where('email', 'like', 'admin@mail.com')->first()?->roles()->sync($superAdminRole);
     }
 }

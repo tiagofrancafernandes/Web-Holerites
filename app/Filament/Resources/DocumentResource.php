@@ -67,15 +67,18 @@ class DocumentResource extends Resource
                                         }
 
                                         $set('slug', Str::slug($state));
-                                    }),
+                                    })
+                                    ->columnSpan(2),
 
                                 Forms\Components\TextInput::make('slug')
                                     ->disabled()
                                     ->dehydrated()
                                     ->required()
                                     ->maxLength(255)
-                                    ->unique(Document::class, 'slug', ignoreRecord: true),
-                            ]),
+                                    ->unique(Document::class, 'slug', ignoreRecord: true)
+                                    ->columnSpan(2),
+                            ])
+                            ->columns(4),
 
                         Forms\Components\Section::make()
                             ->heading('Documento')
@@ -101,6 +104,7 @@ class DocumentResource extends Resource
                                     //     },
                                     // )
                                     ->disk(static::getDocumentDisk())
+                                    ->downloadable()
                                     ->acceptedFileTypes([
                                         'image/png',
                                         'image/jpeg',
@@ -109,7 +113,50 @@ class DocumentResource extends Resource
                                         'application/vnd.openxmlformats-officedocument.presentationml.presentation',
                                         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                                     ])
+                                    ->hidden(
+                                        fn(?Model $record) => boolval($record?->file),
+                                    )
                                     ->columnSpanFull(),
+
+                                Forms\Components\View::make('filament.custom.forms.components.html-record-content')
+                                    ->viewData([
+                                        'content' => fn(?Model $record) => html()->element('div')
+                                            ->html(
+                                                implode(
+                                                    '',
+                                                    [
+                                                        Tables\Actions\Action::make('open_file')
+                                                            ->label('Abrir anexo')
+                                                            ->url(
+                                                                url: route('storage_documents.show', $record?->file?->path),
+                                                                shouldOpenInNewTab: true,
+                                                            )
+                                                            ->icon('feathericon-external-link')
+                                                            ->hidden(
+                                                                !$record?->file,
+                                                            )->toHtml(),
+                                                        Tables\Actions\Action::make('download_file')
+                                                            ->label('Baixar anexo')
+                                                            ->url(
+                                                                url: route(
+                                                                    'storage_documents.show',
+                                                                    [
+                                                                        $record?->file?->path,
+                                                                        'download' => true,
+                                                                    ],
+                                                                ),
+                                                                shouldOpenInNewTab: true,
+                                                            )
+                                                            ->icon('feathericon-download-cloud')
+                                                            ->hidden(
+                                                                !$record?->file,
+                                                            )->toHtml(),
+                                                    ]
+                                                )
+                                            ),
+                                    ])
+                                    ->hidden(fn(?Model $record) => !$record)
+                                    ->dehydrated(false),
                             ])
                             ->columns(2),
 
@@ -135,7 +182,7 @@ class DocumentResource extends Resource
                                 Forms\Components\MarkdownEditor::make('internal_note')
                                     ->label('Nota interna')
                                     ->helperText('Esse texto não poderá ser visto pelo(s) colaborador(es)')
-                                    ->hidden(fn (callable $get) => !$get('show_internal_note'))
+                                    ->hidden(fn(callable $get) => !$get('show_internal_note'))
                                     ->live()
                                     ->maxLength(1500)
                                     ->columnSpanFull(),
@@ -165,7 +212,7 @@ class DocumentResource extends Resource
                                 Forms\Components\Select::make('status')
                                     ->options(
                                         collect(DocumentStatus::cases())
-                                            ->mapWithKeys(fn ($enum) => [$enum->value => $enum?->label()])
+                                            ->mapWithKeys(fn($enum) => [$enum->value => $enum?->label()])
                                             ->toArray()
                                     )
                                     ->default(DocumentStatus::DRAFT->value)
@@ -321,7 +368,7 @@ class DocumentResource extends Resource
                     ),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Tables\Actions\Action $action) => $action
+                fn(\Filament\Tables\Actions\Action $action) => $action
                     ->button()
                     ->label(__('Filter')),
             )
@@ -360,11 +407,11 @@ class DocumentResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ])
@@ -375,17 +422,17 @@ class DocumentResource extends Resource
                 Tables\Actions\Action::make('open_file')
                     ->label('Abrir anexo')
                     ->url(
-                        url: fn (?Model $record) => route('storage_documents.show', $record?->file?->path),
+                        url: fn(?Model $record) => route('storage_documents.show', $record?->file?->path),
                         shouldOpenInNewTab: true,
                     )
                     ->icon('feathericon-external-link')
                     ->hidden(
-                        fn (?Model $record) => !$record?->file,
+                        fn(?Model $record) => !$record?->file,
                     ),
                 Tables\Actions\Action::make('download_file')
                     ->label('Baixar anexo')
                     ->url(
-                        url: fn (?Model $record) => route(
+                        url: fn(?Model $record) => route(
                             'storage_documents.show',
                             [
                                 $record?->file?->path,
@@ -396,7 +443,7 @@ class DocumentResource extends Resource
                     )
                     ->icon('feathericon-download-cloud')
                     ->hidden(
-                        fn (?Model $record) => !$record?->file,
+                        fn(?Model $record) => !$record?->file,
                     ),
             ])
             ->bulkActions([
@@ -452,17 +499,17 @@ class DocumentResource extends Resource
 
                 Infolists\Components\TextEntry::make('storage_file_id')
                     ->url(
-                        url: fn (?Model $record) => $record?->file?->url,
+                        url: fn(?Model $record) => $record?->file?->url,
                         shouldOpenInNewTab: true,
                     )
                     ->label('Documento')
-                    ->formatStateUsing(fn () => 'Abrir documento')
+                    ->formatStateUsing(fn() => 'Abrir documento')
                     ->icon('feathericon-external-link')
                     ->inlineLabel(),
 
                 Infolists\Components\TextEntry::make('created_by')
                     ->label('Cadastrado por')
-                    ->formatStateUsing(fn (?Model $record) => $record?->creator?->name)
+                    ->formatStateUsing(fn(?Model $record) => $record?->creator?->name)
                     ->inlineLabel(),
 
                 Infolists\Components\IconEntry::make('public')

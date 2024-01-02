@@ -66,6 +66,14 @@ return [
      */
     'global_permissions' => [
         'feedback::can_submit',
+        'document_status::see.DRAFT',
+        'document_status::see.INVALID',
+        'document_status::see.VALIDATED',
+        'document_status::see.UNDER_ANALYSIS',
+        'document_status::see.REJECTED',
+        'document_status::see.APPROVED_FOR_PUBLICATION',
+        'document_status::see.AWAITING_REVIEW',
+        'document_status::see.PUBLISHED',
     ],
     'default_suffix' => [
         'view',

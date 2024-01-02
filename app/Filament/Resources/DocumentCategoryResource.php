@@ -68,8 +68,8 @@ class DocumentCategoryResource extends Resource
                     }
 
                     $set('slug', Str::slug($state));
-                    $set('seo_title', Str::title($state));
-                    $set('name', Str::title($state));
+                    $set('seo_title', Str::ucfirst($state));
+                    $set('name', Str::ucfirst($state));
                 })
                 ->unique(DocumentCategory::class, 'name', ignoreRecord: true),
 
