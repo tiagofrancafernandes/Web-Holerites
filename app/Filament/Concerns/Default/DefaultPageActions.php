@@ -40,6 +40,7 @@ class DefaultPageActions
                 ->hidden(fn (?Model $record): bool => !$record),
 
             Actions\Action::make('custom_create')
+                ->label(__('Create new item'))
                 ->url(
                     fn () => PageHelpers::resourceGetUrl($resource, 'create')
                 )

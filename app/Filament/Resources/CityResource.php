@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\Traits\ModelLabel;
 
-class CityResource extends Resource
+class CityResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 {
     use ModelLabel;
 

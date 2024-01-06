@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Hash;
 
-class UserResource extends Resource
+class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 {
     use ModelLabel;
 
@@ -59,6 +59,7 @@ class UserResource extends Resource
                 Forms\Components\DateTimePicker::make('email_verified_at')
                     ->label(static::getFormAttributeLabel('email_verified_at'))
                     ->placeholder(static::getFormAttributeLabel('email_verified_at'))
+                    ->displayFormat('j M Y H:i')
                     ->native(false),
 
                 // Forms\Components\TextInput::make('password')

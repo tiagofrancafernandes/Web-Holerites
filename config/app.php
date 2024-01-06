@@ -181,7 +181,11 @@ return [
     |
     */
 
+
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
+
+        // See: \App\Providers\AppServiceProvider::bindReplaces
+        // \Filament\Resources\Resource::class => \App\Filament\Resources\Extended\ExtendedResourceBase::class,
     ])->toArray(),
 ];

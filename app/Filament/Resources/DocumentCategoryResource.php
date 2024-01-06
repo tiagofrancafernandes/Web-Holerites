@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\Traits\ModelLabel;
 
-class DocumentCategoryResource extends Resource
+class DocumentCategoryResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 {
     use ModelLabel;
 

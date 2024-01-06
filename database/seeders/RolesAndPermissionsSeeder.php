@@ -37,7 +37,16 @@ class RolesAndPermissionsSeeder extends Seeder
                     //
                 ],
             ]
-        )->each(fn ($permissionName) => Permission::firstOrCreate(['name' => $permissionName]));
+        )?->map(fn($permissionName) => [
+            'name' => $permissionName,
+            'guard_name' => 'web',
+            'is_canonical' => true,
+            'created_at' => $now->format('Y-m-d H:i:s'),
+            'updated_at' => $now->format('Y-m-d H:i:s'),
+        ])
+        ->each(fn($permissionName) => Permission::firstOrCreate([
+            'name' => $permissionName,
+        ], $permissionName));
 
         // create roles and assign created permissions
 
@@ -59,44 +68,95 @@ class RolesAndPermissionsSeeder extends Seeder
             User::class,
         ])
             ->unique()
-            ->map(fn ($modelClass) => str(class_basename($modelClass))->trim()->snake()->toString())
-            ->filter(fn ($modelClass) => filled($modelClass))
-            ->map(fn ($modelClass) => $suffixList->map(fn ($suffix) => "{$modelClass}::{$suffix}"));
+            ->map(fn($modelClass) => str(class_basename($modelClass))->trim()->snake()->toString())
+            ->filter(fn($modelClass) => filled($modelClass))
+            ->map(fn($modelClass) => $suffixList->map(fn($suffix) => "{$modelClass}::{$suffix}"));
 
         $permissionList = $modelPermissions
-            ?->flatten()
-            ?->unique()
-            ?->values()
-            ?->map(fn ($permissionName) => [
+                ?->flatten()
+                ?->unique()
+                ?->values()
+                ?->map(fn($permissionName) => [
                 'name' => $permissionName,
                 'guard_name' => 'web',
+                'is_canonical' => true,
                 'created_at' => $now->format('Y-m-d H:i:s'),
                 'updated_at' => $now->format('Y-m-d H:i:s'),
             ])
-            ?->toArray();
+                ?->toArray();
 
         Permission::upsert(
             $permissionList,
-            ['name'],
+            [
+                'name',
+            ],
             [
                 'name',
                 'guard_name',
+                'is_canonical',
+                'created_at',
+                'updated_at',
             ]
         );
 
         // this can be done as separate statements
+        // Canonical permissions
         \collect([
-            'writer' => [
-                'article::edit',
+            'colaborador' => [
                 'painel::access',
+                'document::list',
+                'document::view',
+                'document::viewAny',
+                'document_category::list',
+                'document_category::view',
+                'document_category::viewAny',
             ],
-            'moderator' => [
-                'article::publish',
-                'article::unpublish',
+            'gestor' => [
                 'painel::access',
+
+                'document_category::create',
+                'document_category::delete',
+                'document_category::deleteAny',
+                'document_category::edit',
+                'document_category::editAny',
+                'document_category::forceDelete',
+                'document_category::forceDeleteAny',
+                'document_category::reorder',
+                'document_category::reorderAny',
+                'document_category::restore',
+                'document_category::restoreAny',
+                'document_category::update',
+                'document_category::updateAny',
+                'document_category::view',
+                'document_category::list',
+                'document_category::viewAny',
+
+                'document::create',
+                'document::delete',
+                'document::deleteAny',
+                'document::edit',
+                'document::editAny',
+                'document::forceDelete',
+                'document::forceDeleteAny',
+                'document::list',
+                'document::listAll',
+                'document::publish',
+                'document::reorder',
+                'document::reorderAny',
+                'document::restore',
+                'document::restoreAny',
+                'document::unpublish',
+                'document::update',
+                'document::updateAny',
+                'document::view',
+                'document::viewAny',
+                'document::manage',
             ],
         ])->each(function ($rolePermissions, $roleName) use ($globalPermissions) {
-            $role = Role::firstOrCreate(['name' => $roleName]);
+            $role = Role::firstOrCreate([
+                'name' => $roleName,
+                'is_canonical' => true,
+            ]);
             $role->syncPermissions([
                 ...$rolePermissions,
                 ...$globalPermissions,
@@ -105,7 +165,10 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $allPermissions = Permission::all();
 
-        $superAdminRole = Role::firstOrCreate(['name' => 'super-admin']);
+        $superAdminRole = Role::firstOrCreate([
+            'name' => 'super-admin',
+            'is_canonical' => true,
+        ]);
         // $superAdminRole->givePermissionTo(Permission::all());
         $superAdminRole->syncPermissions($allPermissions);
 

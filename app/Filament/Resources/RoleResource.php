@@ -11,8 +11,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use App\Filament\Resources\Traits\ModelLabel;
+use Illuminate\Database\Eloquent\Model;
 
-class RoleResource extends Resource
+class RoleResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 {
     use ModelLabel;
 
@@ -30,16 +31,21 @@ class RoleResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->readOnly(fn(?Model $record) => boolval($record?->is_canonical))
                     ->required()
                     ->maxLength(255),
 
                 Forms\Components\Select::make('guard_name')
-                    ->required()
+                    ->disabled(fn(?Model $record) => boolval($record?->is_canonical))
+                    ->label(__('models.Role.form.guard_name'))
+                    ->placeholder('Select a guard name')
                     ->options([
-                        'web' => 'web',
-                        'api' => 'api',
+                        'web' => 'WEB',
+                        'api' => 'API',
                     ])
-                    ->searchable(),
+                    ->default('web')
+                    ->required()
+                    ->native(false),
             ]);
     }
 
@@ -48,13 +54,20 @@ class RoleResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->sortable()
+                    ->searchable(
+                        isIndividual: true,
+                        isGlobal: false,
+                    ),
 
                 Tables\Columns\TextColumn::make('guard_name')
-                    ->searchable(),
+                    ->sortable()
+                    ->searchable(
+                        isIndividual: true,
+                        isGlobal: false,
+                    ),
 
-                Tables\Columns\TextColumn::make('permissionCount')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('permissionCount'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -67,7 +80,7 @@ class RoleResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Tables\Actions\Action $action) => $action
+                fn(\Filament\Tables\Actions\Action $action) => $action
                     ->button()
                     ->label(__('Filter')),
             )
@@ -75,13 +88,31 @@ class RoleResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                // Tables\Actions\EditAction::make()
-                //     ->label(static::getResource()::getActionLabel('edit')),
-                // Tables\Actions\DeleteAction::make()
-                //     ->label(static::getActionLabel('delete')),
-                // Tables\Actions\CreateAction::make()
-                //     ->label(static::getResource()::getActionLabel('create')),
+                Tables\Actions\EditAction::make()
+                    ->label(static::getActionLabel('edit'))
+                    ->hidden(
+                        fn(?Model $record) => !static::allowed(
+                            ['edit', 'editAny'],
+                            $record
+                        )
+                    ),
+
+                Tables\Actions\DeleteAction::make()
+                    ->label(static::getActionLabel('delete'))
+                    ->hidden(
+                        fn(?Model $record) => boolval($record?->is_canonical) || !static::allowed(
+                            ['delete', 'deleteAny'],
+                            $record
+                        )
+                    ),
+
+                Tables\Actions\ViewAction::make()
+                    ->label(static::getActionLabel('view'))
+                    ->hidden(fn(?Model $record) => !static::allowed(
+                        ['view', 'viewAny'],
+                        $record
+                    )
+                ),
             ])
             // ->paginated([10, 25, 50, 100, 'all'])
             ->bulkActions([

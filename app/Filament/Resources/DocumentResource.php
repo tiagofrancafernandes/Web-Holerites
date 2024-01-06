@@ -34,7 +34,7 @@ use Filament\Infolists\Components\Section;
 use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\DatePicker;
 
-class DocumentResource extends Resource
+class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 {
     use ModelLabel;
 
@@ -54,6 +54,9 @@ class DocumentResource extends Resource
                 Forms\Components\Group::make()
                     ->schema([
                         Forms\Components\Section::make()
+                            ->disabled(
+                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                            )
                             ->heading('Identificação')
                             ->schema([
                                 Forms\Components\TextInput::make('title')
@@ -81,86 +84,6 @@ class DocumentResource extends Resource
                             ->columns(4),
 
                         Forms\Components\Section::make()
-                            ->heading('Documento')
-                            ->schema([
-                                FileUpload::make('document_file.path')
-                                    ->live()
-                                    ->visibility('private')
-                                    ->label('Arquivo')
-                                    ->storeFileNamesIn('document_file.original_name')
-                                    // ->directory('documents')
-                                    // ->getUploadedFileNameForStorageUsing(
-                                    //     function (TemporaryUploadedFile $file, callable $set): string {
-                                    //         $set(
-                                    //             'document_file.extension',
-                                    //             $file->getClientOriginalExtension() ?: pathinfo(
-                                    //                 $file->getClientOriginalName(),
-                                    //                 PATHINFO_EXTENSION
-                                    //             )
-                                    //         );
-
-                                    //         return (string) str($file->getClientOriginalName())
-                                    //             ->prepend(time() . '-');
-                                    //     },
-                                    // )
-                                    ->disk(static::getDocumentDisk())
-                                    ->downloadable()
-                                    ->acceptedFileTypes([
-                                        'image/png',
-                                        'image/jpeg',
-                                        'application/pdf',
-                                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                                        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                    ])
-                                    ->hidden(
-                                        fn(?Model $record) => boolval($record?->file),
-                                    )
-                                    ->columnSpanFull(),
-
-                                Forms\Components\View::make('filament.custom.forms.components.html-record-content')
-                                    ->viewData([
-                                        'content' => fn(?Model $record) => html()->element('div')
-                                            ->html(
-                                                implode(
-                                                    '',
-                                                    [
-                                                        Tables\Actions\Action::make('open_file')
-                                                            ->label('Abrir anexo')
-                                                            ->url(
-                                                                url: route('storage_documents.show', $record?->file?->path),
-                                                                shouldOpenInNewTab: true,
-                                                            )
-                                                            ->icon('feathericon-external-link')
-                                                            ->hidden(
-                                                                !$record?->file,
-                                                            )->toHtml(),
-                                                        Tables\Actions\Action::make('download_file')
-                                                            ->label('Baixar anexo')
-                                                            ->url(
-                                                                url: route(
-                                                                    'storage_documents.show',
-                                                                    [
-                                                                        $record?->file?->path,
-                                                                        'download' => true,
-                                                                    ],
-                                                                ),
-                                                                shouldOpenInNewTab: true,
-                                                            )
-                                                            ->icon('feathericon-download-cloud')
-                                                            ->hidden(
-                                                                !$record?->file,
-                                                            )->toHtml(),
-                                                    ]
-                                                )
-                                            ),
-                                    ])
-                                    ->hidden(fn(?Model $record) => !$record)
-                                    ->dehydrated(false),
-                            ])
-                            ->columns(2),
-
-                        Forms\Components\Section::make()
                             ->heading('Nota')
                             ->schema([
                                 Forms\Components\MarkdownEditor::make('public_note')
@@ -169,6 +92,9 @@ class DocumentResource extends Resource
                                     ->maxLength(1500)
                                     ->columnSpanFull(),
                             ])
+                            ->disabled(
+                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                            )
                             ->collapsible(),
 
                         Forms\Components\Section::make()
@@ -187,6 +113,12 @@ class DocumentResource extends Resource
                                     ->maxLength(1500)
                                     ->columnSpanFull(),
                             ])
+                            ->disabled(
+                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                            )
+                            ->hidden(
+                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                            )
                             ->columns(2)
                             ->collapsible()
                             ->collapsed(),
@@ -217,25 +149,127 @@ class DocumentResource extends Resource
                                     )
                                     ->default(DocumentStatus::DRAFT->value)
                                     ->required()
+                                    ->hidden(
+                                        fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                    )
                                     ->native(false),
 
                                 Forms\Components\Toggle::make('public')
                                     ->label('Visível?')
                                     ->helperText('Se esse item poderá ser visualizado')
-                                    ->default(true),
+                                    ->default(true)
+                                    ->hidden(
+                                        fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                    ),
 
                                 Forms\Components\DatePicker::make('release_date')
                                     ->label('Disponível a partir de')
                                     ->helperText('Data a partir da qual (quando publicado) poderá ser visualizado')
                                     ->default(now())
-                                    ->required(),
+                                    ->required()
+                                    ->hidden(
+                                        fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                    ),
 
                                 Forms\Components\DatePicker::make('available_until')
                                     ->label('Disponível até')
                                     ->helperText('Data até a qual o item poderá ser visualizado'),
+                            ])
+                            ->hidden(
+                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                            ),
+
+                        Forms\Components\Section::make('Associações')
+                            ->schema([
+                                Forms\Components\Section::make()
+                                    ->heading('Documento')
+                                    ->schema([
+                                        FileUpload::make('document_file.path')
+                                            ->disabled(
+                                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                            )
+                                            ->live()
+                                            ->visibility('private')
+                                            ->label('Arquivo')
+                                            ->storeFileNamesIn('document_file.original_name')
+                                            // ->directory('documents')
+                                            // ->getUploadedFileNameForStorageUsing(
+                                            //     function (TemporaryUploadedFile $file, callable $set): string {
+                                            //         $set(
+                                            //             'document_file.extension',
+                                            //             $file->getClientOriginalExtension() ?: pathinfo(
+                                            //                 $file->getClientOriginalName(),
+                                            //                 PATHINFO_EXTENSION
+                                            //             )
+                                            //         );
+
+                                            //         return (string) str($file->getClientOriginalName())
+                                            //             ->prepend(time() . '-');
+                                            //     },
+                                            // )
+                                            ->disk(static::getDocumentDisk())
+                                            ->downloadable()
+                                            ->acceptedFileTypes([
+                                                'image/png',
+                                                'image/jpeg',
+                                                'application/pdf',
+                                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                            ])
+                                            ->hidden(
+                                                fn(?Model $record) => boolval($record?->file),
+                                            )
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\View::make('filament.custom.forms.components.html-record-content')
+                                            ->viewData([
+                                                'content' => fn(?Model $record) => html()->element('div')
+                                                    ->html(
+                                                        implode(
+                                                            '',
+                                                            [
+                                                                Tables\Actions\Action::make('open_file')
+                                                                    ->label('Abrir anexo')
+                                                                    ->url(
+                                                                        url: route('storage_documents.show', $record?->file?->path),
+                                                                        shouldOpenInNewTab: true,
+                                                                    )
+                                                                    ->icon('feathericon-external-link')
+                                                                    ->hidden(
+                                                                        !$record?->file,
+                                                                    )->toHtml(),
+                                                                Tables\Actions\Action::make('download_file')
+                                                                    ->label('Baixar anexo')
+                                                                    ->url(
+                                                                        url: route(
+                                                                            'storage_documents.show',
+                                                                            [
+                                                                                $record?->file?->path,
+                                                                                'download' => true,
+                                                                            ],
+                                                                        ),
+                                                                        shouldOpenInNewTab: true,
+                                                                    )
+                                                                    ->icon('feathericon-download-cloud')
+                                                                    ->hidden(
+                                                                        !$record?->file,
+                                                                    )->toHtml(),
+                                                            ]
+                                                        )
+                                                    ),
+                                            ])
+                                            ->hidden(fn(?Model $record) => !$record)
+                                            ->dehydrated(false)
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2),
                             ]),
 
                         Forms\Components\Section::make('Associações')
+                            ->hidden(
+                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                            )
                             ->schema([
                                 // Forms\Components\Select::make('shop_brand_id')
                                 //     ->relationship('brand', 'name')
@@ -307,10 +341,6 @@ class DocumentResource extends Resource
                         static::getTableAttributeLabel('id')
                     )
                     ->sortable()
-                    ->searchable(
-                        isIndividual: true,
-                        isGlobal: true,
-                    )
                     ->toggleable(
                         isToggledHiddenByDefault: false,
                     ),
@@ -333,10 +363,7 @@ class DocumentResource extends Resource
                         static::getTableAttributeLabel('status')
                     )
                     ->sortable()
-                    ->searchable(
-                        isIndividual: true,
-                        isGlobal: true,
-                    )
+                    ->formatStateUsing(fn(?Model $record) => $record?->status?->label())
                     ->toggleable(
                         isToggledHiddenByDefault: false,
                     ),
@@ -427,7 +454,11 @@ class DocumentResource extends Resource
                     )
                     ->icon('feathericon-external-link')
                     ->hidden(
-                        fn(?Model $record) => !$record?->file,
+                        fn(?Model $record) => !$record?->file
+                        || !(
+                            ($record?->status === DocumentStatus::PUBLISHED)
+                            || static::allowed(['document::manage'], $record)
+                        ),
                     ),
                 Tables\Actions\Action::make('download_file')
                     ->label('Baixar anexo')
@@ -471,6 +502,7 @@ class DocumentResource extends Resource
     {
         return [
             'index' => Pages\ListDocuments::route('/'),
+            'manage' => Pages\ManageDocuments::route('/gerenciar'),
             'create' => Pages\CreateDocument::route('/create'),
             'edit' => Pages\EditDocument::route('/{record}/edit'),
             'details' => Pages\ViewDocument::route('/{record}/view'),

@@ -8,6 +8,9 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Components\Tab;
 use App\Enums\DocumentStatus;
+use App\Models\DocumentCategory;
+use Filament\Support\Enums\IconPosition;
+use Illuminate\Database\Eloquent\Model;
 
 class ListDocuments extends ListRecords
 {
@@ -18,6 +21,16 @@ class ListDocuments extends ListRecords
     protected function getActions(): array
     {
         return [
+            Actions\Action::make('manage')
+                ->url(static::getResource()::getUrl('manage'))
+                ->label(static::getResource()::getActionLabel('manage'))
+                ->hidden(
+                    fn(?Model $record) => !static::getResource()::allowed(
+                        ['document::manage'],
+                        $record
+                    )
+                ),
+
             Actions\CreateAction::make()
                 ->label(static::getResource()::getActionLabel('create')),
         ];
@@ -30,30 +43,29 @@ class ListDocuments extends ListRecords
 
     public function getTabs(): array
     {
-        $authUser = auth()->user();
-        $userDocumentStatusAllowed = cache()
-            ->remember(
-                'userDocumentStatusAllowed-' . $authUser?->id,
-                60,
-                fn() => $authUser->permissions()
-                    ->where('name', 'like', 'document_status::see.%')
-                    ->get()
-                    ?->pluck('name')
-                    ?->toArray()
-            );
+        $updateCache = request()->boolean('updateCache', false);
 
-        return collect(DocumentStatus::cases())
-                ->filter(fn ($item) => in_array("document_status::see.{$item?->name}", $userDocumentStatusAllowed))
-                ->mapWithKeys(fn($enum) => [
-                    $enum->name => Tab::make()
-                        ->query(
-                            fn($query) => $query->where('status', $enum->value)
-                        )->label($enum?->label())
-                ])
-                ->prepend(
-                    Tab::make('All')->label(__('All')),
-                    'ALL'
-                )
-                ->toArray();
+        return collect(DocumentCategory::tabList($updateCache))
+            ->mapWithKeys(function (DocumentCategory $category) {
+
+                $tab = Tab::make()
+                    ->query(
+                        fn($query) => $query->where('document_category_id', $category->id)
+                    )
+                    ->label($category?->name);
+
+                if ($category?->icon) {
+                    $tab = $tab->icon($category?->icon);
+                }
+
+                return [
+                    $category->slug => $tab,
+                ];
+            })
+            ->prepend(
+                Tab::make('All')->label(__('All')),
+                'ALL'
+            )
+            ->toArray();
     }
 }

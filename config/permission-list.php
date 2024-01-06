@@ -7,6 +7,8 @@
 return [
     'generic' => [
         'feedback::can_submit',
+        'permission::can_attach',
+        'permission::can_detach',
     ],
     'article' => [
         'article::edit',
@@ -33,6 +35,7 @@ return [
         'employee::unpublish',
     ],
     'document' => [
+        'document::manage',
         'document::create',
         'document::edit',
         'document::update',
@@ -41,6 +44,16 @@ return [
         'document::delete',
         'document::publish',
         'document::unpublish',
+    ],
+    'document_status' => [
+        'document_status::see.DRAFT',
+        'document_status::see.INVALID',
+        'document_status::see.VALIDATED',
+        'document_status::see.UNDER_ANALYSIS',
+        'document_status::see.REJECTED',
+        'document_status::see.APPROVED_FOR_PUBLICATION',
+        'document_status::see.AWAITING_REVIEW',
+        'document_status::see.PUBLISHED',
     ],
     'team' => [
         'team::create',
@@ -65,17 +78,11 @@ return [
      * Use only for non secure permissions
      */
     'global_permissions' => [
+        // !! Any permission here will apply to all users
         'feedback::can_submit',
-        'document_status::see.DRAFT',
-        'document_status::see.INVALID',
-        'document_status::see.VALIDATED',
-        'document_status::see.UNDER_ANALYSIS',
-        'document_status::see.REJECTED',
-        'document_status::see.APPROVED_FOR_PUBLICATION',
-        'document_status::see.AWAITING_REVIEW',
-        'document_status::see.PUBLISHED',
     ],
     'default_suffix' => [
+        'list',
         'view',
         'viewAny',
         'create',

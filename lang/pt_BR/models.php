@@ -6,7 +6,7 @@ return [
             'create' => 'Criar',
             'view-mode' => 'Modo de visualização',
             'edit-mode' => 'Modo de edição',
-            'view' => 'Ver',
+            'view' => 'Visualizar',
         ],
         'table' => [
             'id' => 'ID',
@@ -31,6 +31,7 @@ return [
         'pluralModelLabel' => 'Documentos',
         'actions' => [
             'create' => 'Cadastrar novo documento',
+            'manage' => 'Gerenciar documentos',
         ],
         'table' => [
             'id' => 'ID',
@@ -85,7 +86,7 @@ return [
         'titleCaseModelLabel' => 'Função',
         'pluralModelLabel' => 'Funções',
         'actions' => [
-            'create' => 'Cadastrat nova função',
+            'create' => 'Cadastrar nova função',
         ],
         'table' => [
             'id' => 'ID',

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Closure;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class DocumentCategory extends Model
 {
@@ -30,6 +33,9 @@ class DocumentCategory extends Model
         'description',
         'seo_title',
         'seo_description',
+        'show_on_tab_filter',
+        'order_on_tab_filter',
+        'icon',
     ];
 
     /**
@@ -38,7 +44,7 @@ class DocumentCategory extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        //
+        'show_on_tab_filter' => 'boolean',
     ];
 
     public function children(): HasMany
@@ -54,5 +60,38 @@ class DocumentCategory extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class, 'document_category_id');
+    }
+
+    public static function tabList(bool|Closure $updateCache = false): Collection
+    {
+        $updateCache = boolval(is_a($updateCache, Closure::class) ? $updateCache() : $updateCache);
+
+        $cacheKey = http_build_query([
+            __METHOD__,
+            Auth::user()?->id,
+        ]);
+
+        if ($updateCache) {
+            cache()->forget($cacheKey);
+        }
+
+        return cache()
+            ->remember(
+                $cacheKey,
+                60,
+                fn() => DocumentCategory::select([
+                    'id',
+                    'name',
+                    'slug',
+                    'icon',
+                    'show_on_tab_filter',
+                    'order_on_tab_filter',
+                ])
+                    // ->orderBy('order_on_tab_filter')
+                    // ->orderBy('id')
+                    ->where('show_on_tab_filter', true)
+                    ->get()
+                    ->sortBy('order_on_tab_filter')
+            );
     }
 }

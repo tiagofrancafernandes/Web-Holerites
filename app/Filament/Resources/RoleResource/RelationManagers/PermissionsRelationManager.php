@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\RoleResource\RelationManagers;
 
+use App\Filament\Resources\RoleResource;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Models\Role;
 
 class PermissionsRelationManager extends RelationManager
 {
@@ -35,7 +37,7 @@ class PermissionsRelationManager extends RelationManager
                     ),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Tables\Actions\Action $action) => $action
+                fn(\Filament\Tables\Actions\Action $action) => $action
                     ->button()
                     ->label(__('Filter')),
             )
@@ -44,18 +46,25 @@ class PermissionsRelationManager extends RelationManager
             ])
             ->headerActions([
                 // Tables\Actions\CreateAction::make(),
-                Tables\Actions\AttachAction::make(),
+                Tables\Actions\AttachAction::make()
+                    ->hidden(fn() => !RoleResource::allowed('permission::can_attach'))
+                    ->after(fn() => Role::clearCache())
+                    ->preloadRecordSelect(),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make()
                 //     ->label(static::getResource()::getActionLabel('edit')),
-                Tables\Actions\DetachAction::make(),
+                Tables\Actions\DetachAction::make()
+                    ->hidden(fn() => !RoleResource::allowed('permission::can_detach'))
+                    ->after(fn() => Role::clearCache()),
                 // Tables\Actions\DeleteAction::make()
                 //     ->label(static::getActionLabel('delete')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DetachBulkAction::make(),
+                    Tables\Actions\DetachBulkAction::make()
+                    ->hidden(fn() => !RoleResource::allowed('permission::can_detach'))
+                    ->after(fn() => Role::clearCache()),
                     // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);

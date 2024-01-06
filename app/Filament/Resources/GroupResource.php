@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\Traits\ModelLabel;
 use Illuminate\Support\Str;
 
-class GroupResource extends Resource
+class GroupResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 {
     use ModelLabel;
 
