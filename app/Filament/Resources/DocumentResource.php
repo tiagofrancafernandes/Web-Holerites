@@ -55,7 +55,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                     ->schema([
                         Forms\Components\Section::make()
                             ->disabled(
-                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                fn(?Model $record) => !static::allowed(['manage'], $record),
                             )
                             ->heading('Identificação')
                             ->schema([
@@ -93,7 +93,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->columnSpanFull(),
                             ])
                             ->disabled(
-                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                fn(?Model $record) => !static::allowed(['manage'], $record),
                             )
                             ->collapsible(),
 
@@ -114,10 +114,10 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->columnSpanFull(),
                             ])
                             ->disabled(
-                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                fn(?Model $record) => !static::allowed(['manage'], $record),
                             )
                             ->hidden(
-                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                fn(?Model $record) => !static::allowed(['manage'], $record),
                             )
                             ->columns(2)
                             ->collapsible()
@@ -150,7 +150,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->default(DocumentStatus::DRAFT->value)
                                     ->required()
                                     ->hidden(
-                                        fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                        fn(?Model $record) => !static::allowed(['manage'], $record),
                                     )
                                     ->native(false),
 
@@ -159,7 +159,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->helperText('Se esse item poderá ser visualizado')
                                     ->default(true)
                                     ->hidden(
-                                        fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                        fn(?Model $record) => !static::allowed(['manage'], $record),
                                     ),
 
                                 Forms\Components\DatePicker::make('release_date')
@@ -168,7 +168,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->default(now())
                                     ->required()
                                     ->hidden(
-                                        fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                        fn(?Model $record) => !static::allowed(['manage'], $record),
                                     ),
 
                                 Forms\Components\DatePicker::make('available_until')
@@ -176,7 +176,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->helperText('Data até a qual o item poderá ser visualizado'),
                             ])
                             ->hidden(
-                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                fn(?Model $record) => !static::allowed(['manage'], $record),
                             ),
 
                         Forms\Components\Section::make('Associações')
@@ -186,7 +186,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->schema([
                                         FileUpload::make('document_file.path')
                                             ->disabled(
-                                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                                fn(?Model $record) => !static::allowed(['manage'], $record),
                                             )
                                             ->live()
                                             ->visibility('private')
@@ -268,7 +268,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
 
                         Forms\Components\Section::make('Associações')
                             ->hidden(
-                                fn(?Model $record) => !static::allowed(['document::manage'], $record),
+                                fn(?Model $record) => !static::allowed(['manage'], $record),
                             )
                             ->schema([
                                 // Forms\Components\Select::make('shop_brand_id')
@@ -461,7 +461,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                         fn(?Model $record) => !$record?->file
                         || !(
                             ($record?->status === DocumentStatus::PUBLISHED)
-                            || static::allowed(['document::manage'], $record)
+                            || static::allowed(['manage'], $record)
                         ),
                     ),
                 Tables\Actions\Action::make('download_file')
@@ -506,7 +506,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
     {
         return [
             'index' => Pages\ListDocuments::route('/'),
-            'manage' => Pages\ManageDocuments::route('/gerenciar'),
+            'manage' => Pages\ManageDocuments::route('/manage'),
             'create' => Pages\CreateDocument::route('/create'),
             'edit' => Pages\EditDocument::route('/{record}/edit'),
             'details' => Pages\ViewDocument::route('/{record}/view'),

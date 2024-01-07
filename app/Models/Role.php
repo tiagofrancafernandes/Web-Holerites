@@ -71,9 +71,17 @@ class Role extends \Spatie\Permission\Models\Role
 
         $superAdminRole = Role::firstOrCreate([
             'name' => 'super-admin',
+            'guard_name' => 'web',
             'is_canonical' => true,
         ]);
 
-        $superAdminRole->syncPermissions(Permission::all());
+        $superAdminRoleApi = Role::firstOrCreate([
+            'name' => 'api-super-admin',
+            'guard_name' => 'api',
+            'is_canonical' => true,
+        ]);
+
+        $superAdminRole->syncPermissions(Permission::where('guard_name', 'web')->get());
+        $superAdminRoleApi->syncPermissions(Permission::where('guard_name', 'api')->get());
     }
 }

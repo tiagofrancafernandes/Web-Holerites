@@ -38,10 +38,7 @@ class ListDocuments extends ListRecords
                 ->url(static::getResource()::getUrl('manage'))
                 ->label(static::getResource()::getActionLabel('manage'))
                 ->hidden(
-                    fn(?Model $record) => !static::getResource()::allowed(
-                        ['document::manage'],
-                        $record
-                    )
+                    fn() => !static::getResource()::allowed('manage')
                 ),
 
             Actions\CreateAction::make()
@@ -56,7 +53,7 @@ class ListDocuments extends ListRecords
 
     public function getTabs(): array
     {
-        $updateCache = request()->boolean('updateCache', false);
+        $updateCache = request()->boolean('updateCache') ?? request()->boolean('noCache', false);
 
         $categories = DocumentCategory::tabList($updateCache);
 

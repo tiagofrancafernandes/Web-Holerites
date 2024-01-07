@@ -31,14 +31,15 @@ class ManageDocuments extends ListRecords
     public function getTabs(): array
     {
         $authUser = auth()->user();
+        $updateCache = request()->boolean('updateCache') ?? request()->boolean('noCache', false);
+
         $userDocumentStatusAllowed = cache()
             ->remember(
                 'userDocumentStatusAllowed-' . $authUser?->id,
                 60,
-                fn() => $authUser->permissions()
-                    ->where('name', 'like', 'document_status::see.%')
-                    ->get()
-                    ?->pluck('name')
+                fn() => $authUser->getAllCachedPermissionsName($updateCache)
+                    ?->filter(fn($item) => str_contains($item, 'document_status::see.'))
+                    ?->values()
                     ?->toArray()
             );
 
