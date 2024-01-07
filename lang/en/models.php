@@ -132,6 +132,8 @@ return [
             ],
             'groups' => [
                 'title' => 'Groups',
+                'attach' => 'Attach group',
+                'detach' => 'Detach group',
             ],
         ],
         'table' => [

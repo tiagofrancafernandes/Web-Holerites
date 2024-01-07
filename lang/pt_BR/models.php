@@ -140,6 +140,7 @@ return [
         'actions' => [
             'create' => 'Criar novo usuário',
             'delete' => 'Inativar usuário',
+            'restore' => 'Reativar usuário',
             'view-mode' => 'Modo de visualização',
         ],
         'Relations' => [
@@ -148,6 +149,8 @@ return [
             ],
             'groups' => [
                 'title' => 'Grupos',
+                'attach' => 'Vincular grupo',
+                'detach' => 'Desvincular grupo',
             ],
         ],
         'table' => [

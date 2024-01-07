@@ -25,6 +25,10 @@ class EditUser extends EditRecord
             Actions\DeleteAction::make()
                 ->hidden(
                     function(Model $record): bool {
+                        if ($record?->is_canonical) {
+                            return true;
+                        }
+
                         if (!auth()->user()->canAny([
                             // 'user::create',
                             'user::delete',

@@ -25,7 +25,9 @@ class SystemUserSeeder extends Seeder
                 'email' => 'admin@mail.com',
                 'email_verified_at' => now(),
                 'password' => Hash::make('power@123'),
-                'remember_token' => Str::random(10),
+                // 'remember_token' => Str::random(10),
+                'language' => config('app.locale'),
+                'is_canonical' => true,
             ]
         ]);
 

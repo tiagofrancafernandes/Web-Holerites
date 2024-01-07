@@ -48,6 +48,8 @@ class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
                                     ->label(static::getFormAttributeLabel('email'))
                                     ->email()
                                     ->required()
+                                    ->disabled(fn(?Model $record): bool => boolval($record?->is_canonical))
+                                    ->dehydrated(fn($state, ?Model $record): bool => !$record || !($record?->is_canonical))
                                     ->maxLength(255)
                                     ->columnSpan(2),
 
@@ -251,20 +253,14 @@ class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
                     ->label(static::getActionLabel('edit'))
                     ->hidden(
                         function (Model $record): bool {
-                            if (
-                                !auth()->user()->canAny([
-                                    'user::edit',
-                                    'user::editAny',
-                                    'user::forceDelete',
-                                    'user::forceDeleteAny',
-                                    'user::update',
-                                    'user::updateAny',
-                                ])
-                            ) {
-                                return true;
-                            }
-
-                            return $record?->id === auth()->user()->id;
+                            return !auth()->user()->cachedCanAny([
+                                'user::edit',
+                                'user::editAny',
+                                'user::forceDelete',
+                                'user::forceDeleteAny',
+                                'user::update',
+                                'user::updateAny',
+                            ]);
                         }
                     ),
 
@@ -272,8 +268,16 @@ class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
                     ->label(static::getActionLabel('delete'))
                     ->hidden(
                         function (Model $record): bool {
+                            if ($record?->deleted_at) {
+                                return true;
+                            }
+
+                            if ($record?->is_canonical) {
+                                return true;
+                            }
+
                             if (
-                                !auth()->user()->canAny([
+                                !auth()->user()->cachedCanAny([
                                     // 'user::create',
                                     'user::delete',
                                     'user::deleteAny',
@@ -295,6 +299,38 @@ class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
                             }
 
                             return $record?->id === auth()->user()->id;
+                        }
+                    ),
+
+                Tables\Actions\RestoreAction::make()
+                    ->label(static::getActionLabel('restore'))
+                    ->hidden(
+                        function (Model $record): bool {
+                            if (!$record?->deleted_at) {
+                                return true;
+                            }
+
+                            if ($record?->is_canonical) {
+                                return false;
+                            }
+
+                            return !auth()->user()->cachedCanAny([
+                                    // 'user::create',
+                                    'user::delete',
+                                    'user::deleteAny',
+                                    'user::edit',
+                                    'user::editAny',
+                                    'user::forceDelete',
+                                    'user::forceDeleteAny',
+                                    // 'user::list',
+                                    // 'user::listAll',
+                                    // 'user::reorder',
+                                    // 'user::reorderAny',
+                                    'user::restore',
+                                    'user::restoreAny',
+                                    'user::update',
+                                    'user::updateAny',
+                                ]);
                         }
                     ),
             ])

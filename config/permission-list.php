@@ -9,6 +9,8 @@ return [
         'feedback::can_submit',
         'permission::can_attach',
         'permission::can_detach',
+        'group::can_attach',
+        'group::can_detach',
     ],
     'article' => [
         'article::edit',

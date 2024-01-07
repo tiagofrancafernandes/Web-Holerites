@@ -42,6 +42,7 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'status',
         'language',
+        'is_canonical',
     ];
 
     /**
@@ -63,6 +64,7 @@ class User extends Authenticatable implements FilamentUser
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'status' => UserStatus::class,
+        'is_canonical' => 'boolean',
     ];
 
     public function canAccessPanel(Panel $panel): bool
