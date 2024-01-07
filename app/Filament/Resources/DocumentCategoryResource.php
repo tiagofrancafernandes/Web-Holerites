@@ -130,6 +130,7 @@ class DocumentCategoryResource extends \App\Filament\Resources\Extended\Extended
                         static::getTableAttributeLabel('parent_name')
                     )
                     ->searchable(
+                        isGlobal: false,
                         isIndividual: true,
                     )
                     ->sortable()

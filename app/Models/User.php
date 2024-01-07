@@ -14,7 +14,13 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Traits\HasPermissions;
+use App\Models\Role;
 
+/**
+ * @property-read mixed $mainWebRole
+ * @property-read mixed $mainApiRole
+ * @property-read mixed $mainWebRole
+ */
 class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens;
@@ -67,5 +73,45 @@ class User extends Authenticatable implements FilamentUser
     public function groups()
     {
         return $this->belongsToMany(Group::class);
+    }
+
+    public function mainRole(?string $guardName = null)
+    {
+        return match ($guardName) {
+            'web' => $this->mainWebRole(),
+            'api' => $this->mainApiRole(),
+            default => $this->mainWebRole(),
+        };
+    }
+
+    public function mainWebRole()
+    {
+        return $this->roles()
+            ->where('guard_name', 'web')
+            ->limit(1)
+            ->latest('created_at');
+    }
+
+    public function mainApiRole()
+    {
+        return $this->roles()
+            ->where('guard_name', 'api')
+            ->limit(1)
+            ->latest('created_at');
+    }
+
+    public function getMainRoleAttribute()
+    {
+        return $this->mainRole()?->first();
+    }
+
+    public function getMainWebRoleAttribute()
+    {
+        return $this->mainWebRole()?->first();
+    }
+
+    public function getMainApiRoleAttribute()
+    {
+        return $this->mainApiRole()?->first();
     }
 }

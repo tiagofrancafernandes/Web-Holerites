@@ -111,7 +111,9 @@ return [
         'titleCaseModelLabel' => 'Permissão',
         'pluralModelLabel' => 'Permissões',
         'actions' => [
-            'create' => 'Cadastrar nova Permissão',
+            'create' => 'Cadastrar nova permissão',
+            'attach' => 'Vincular permissão',
+            'detach' => 'Desvincular permissão',
         ],
         'table' => [
             'id' => 'ID',
@@ -140,6 +142,14 @@ return [
             'delete' => 'Inativar usuário',
             'view-mode' => 'Modo de visualização',
         ],
+        'Relations' => [
+            'permissions' => [
+                'title' => 'Permissões granulares',
+            ],
+            'groups' => [
+                'title' => 'Grupos',
+            ],
+        ],
         'table' => [
             'id' => 'ID',
             'name' => 'Nome',
@@ -156,9 +166,14 @@ return [
             'email' => 'E-mail',
             'password' => 'Senha',
             'password_confirmation' => 'Confirmação da senha',
+            'show_password' => 'Mostrar senha',
             'status' => 'Status',
             'language' => 'Idioma',
             'email_verified_at' => 'E-mail verificado em',
+            'main_web_role' => 'Função WEB',
+            'main_api_role' => 'Função API',
+            'section_roles_heading' => 'Funções',
+            'section_extra_info_heading' => 'Informações adicionais',
         ],
         'filters' => [
             'status' => 'Status',

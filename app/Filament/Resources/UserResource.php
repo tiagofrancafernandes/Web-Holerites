@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,7 @@ use App\Enums\UserStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Role;
 
 class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 {
@@ -32,75 +34,137 @@ class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label(static::getFormAttributeLabel('name'))
-                    ->required()
-                    ->maxLength(255)
-                    ->columnSpan(2),
-
-                Forms\Components\TextInput::make('email')
-                    ->label(static::getFormAttributeLabel('email'))
-                    ->email()
-                    ->required()
-                    ->maxLength(255)
-                    ->columnSpan(2),
-
-                Forms\Components\Select::make('status')
-                    ->label(static::getFormAttributeLabel('status'))
-                    ->required()
-                    ->native(false)
-                    ->default(1)
-                    ->options(
-                        collect(UserStatus::cases())
-                            ->mapWithKeys(fn($e) => [$e->value => $e->label()])
-                            ->toArray()
-                    ),
-
-                Forms\Components\DateTimePicker::make('email_verified_at')
-                    ->label(static::getFormAttributeLabel('email_verified_at'))
-                    ->placeholder(static::getFormAttributeLabel('email_verified_at'))
-                    ->displayFormat('j M Y H:i')
-                    ->native(false),
-
-                // Forms\Components\TextInput::make('password')
-                //     ->label(static::getFormAttributeLabel('password'))
-                //     ->password()
-                //     ->required()
-                //     ->maxLength(255),
-
-                Forms\Components\Section::make(__('Password'))
+                Forms\Components\Group::make()
                     ->schema([
-                        Forms\Components\TextInput::make('password')
-                            ->label(static::getFormAttributeLabel('password'))
-                            ->password()
-                            ->rule(Password::default())
-                            ->autocomplete('new-password')
-                            ->dehydrated(fn($state): bool => filled($state))
-                            ->dehydrateStateUsing(fn($state): string => Hash::make($state))
-                            ->live(debounce: 500)
-                            ->same('passwordConfirmation')
-                            ->columnSpan(2),
+                        Forms\Components\Section::make(__('Password'))
+                            ->schema([
+                                Forms\Components\TextInput::make('name')
+                                    ->label(static::getFormAttributeLabel('name'))
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->columnSpan(2),
 
-                        Forms\Components\TextInput::make('passwordConfirmation')
-                            ->label(static::getFormAttributeLabel('password_confirmation'))
-                            ->password()
-                            ->required()
-                            ->visible(fn(\Filament\Forms\Get $get): bool => filled($get('password')))
-                            ->dehydrated(false)
-                            ->columnSpan(2),
-                    ])
-                    ->columns(4)
-                    ->columnSpanFull(),
+                                Forms\Components\TextInput::make('email')
+                                    ->label(static::getFormAttributeLabel('email'))
+                                    ->email()
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->columnSpan(2),
 
-                Forms\Components\Select::make('language')
-                    ->label(static::getFormAttributeLabel('language'))
-                    ->options([
-                        'en' => 'en',
-                        'pt_BR' => 'pt_BR',
+                                Forms\Components\DateTimePicker::make('email_verified_at')
+                                    ->label(static::getFormAttributeLabel('email_verified_at'))
+                                    ->placeholder(static::getFormAttributeLabel('email_verified_at'))
+                                    ->displayFormat('j M Y H:i')
+                                    ->native(false)
+                                    ->columnSpan(2),
+                            ])
+                            ->columns(4)
+                            ->columnSpanFull(),
+
+
+                        Forms\Components\Section::make(__('Password'))
+                            ->schema([
+                                Forms\Components\TextInput::make('password')
+                                    ->label(static::getFormAttributeLabel('password'))
+                                    ->password(fn(callable $get) => !$get('showPassword'))
+                                    ->rule(Password::default())
+                                    ->autocomplete('new-password')
+                                    ->dehydrated(fn($state): bool => filled($state))
+                                    ->dehydrateStateUsing(fn($state): string => Hash::make($state))
+                                    ->live(debounce: 500)
+                                    ->required(fn(string $operation): bool => $operation === 'create')
+                                    ->same('passwordConfirmation')
+                                    ->helperText(
+                                        fn(string $operation) => ($operation === 'create')
+                                        ? null : 'Deixe em branco se não quiser alterar'
+                                    )
+                                    ->columnSpan(2),
+
+                                Forms\Components\TextInput::make('passwordConfirmation')
+                                    ->label(static::getFormAttributeLabel('password_confirmation'))
+                                    ->password(fn(callable $get) => !$get('showPassword'))
+                                    ->required()
+                                    ->live(debounce: 500)
+                                    ->visible(fn(\Filament\Forms\Get $get): bool => filled($get('password')))
+                                    ->dehydrated(false)
+                                    ->columnSpan(2),
+
+                                Forms\Components\Toggle::make('showPassword')
+                                    ->label(static::getFormAttributeLabel('show_password'))
+                                    ->onIcon('heroicon-s-eye')
+                                    ->offIcon('heroicon-s-eye-slash')
+                                    ->dehydrated(false)
+                                    ->live()
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(4)
+                            ->columnSpanFull(),
+
+                        Forms\Components\Section::make('Roles')
+                            ->heading(__('models.User.form.section_roles_heading'))
+                            ->schema([
+                                Forms\Components\Select::make('main_web_role')
+                                    ->label(__('models.User.form.main_web_role'))
+                                    // ->relationship('mainWebRole', 'name')
+                                    ->options(
+                                        Role::where('guard_name', 'web')
+                                            ->select(['name', 'id'])
+                                            ->pluck('name', 'id')
+                                    )
+                                    ->searchable()
+                                    ->columnSpan(2),
+
+                                Forms\Components\Select::make('main_api_role')
+                                    ->label(__('models.User.form.main_api_role'))
+                                    // ->relationship('mainApiRole', 'name')
+                                    ->options(
+                                        Role::where('guard_name', 'api')
+                                            ->select(['name', 'id'])
+                                            ->pluck('name', 'id')
+                                    )
+                                    ->searchable()
+                                    ->columnSpan(2),
+                            ])
+                            ->collapsible()
+                            ->collapsed()
+                            ->columns(4)
+                            ->columnSpanFull(),
                     ])
-                    ->native(false),
+                    ->columnSpan(['lg' => 2]),
+
+                Forms\Components\Group::make()
+                    ->schema([
+                        Forms\Components\Section::make('Status')
+                            ->schema([
+                                Forms\Components\Select::make('status')
+                                    ->label(static::getFormAttributeLabel('status'))
+                                    ->required()
+                                    ->native(false)
+                                    ->default(1)
+                                    ->options(
+                                        collect(UserStatus::cases())
+                                            ->mapWithKeys(fn($e) => [$e->value => $e->label()])
+                                            ->toArray()
+                                    ),
+                            ]),
+
+                        Forms\Components\Section::make('extra_info')
+                            ->heading(__('models.User.form.section_extra_info_heading'))
+                            ->schema([
+                                Forms\Components\Select::make('language')
+                                    ->label(static::getFormAttributeLabel('language'))
+                                    ->searchable()
+                                    ->options([
+                                        'en' => 'en',
+                                        'pt_BR' => 'pt_BR',
+                                    ])
+                                    ->default(config('app.locale'))
+                                    ->native(false),
+                            ]),
+                    ])
+                    ->columnSpan(['lg' => 1]),
             ])
-            ->columns(6);
+            ->columns(3);
     }
 
     public static function table(Table $table): Table
@@ -186,15 +250,17 @@ class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
                 Tables\Actions\EditAction::make()
                     ->label(static::getActionLabel('edit'))
                     ->hidden(
-                        function(Model $record): bool {
-                            if (!auth()->user()->canAny([
-                                'user::edit',
-                                'user::editAny',
-                                'user::forceDelete',
-                                'user::forceDeleteAny',
-                                'user::update',
-                                'user::updateAny',
-                            ])) {
+                        function (Model $record): bool {
+                            if (
+                                !auth()->user()->canAny([
+                                    'user::edit',
+                                    'user::editAny',
+                                    'user::forceDelete',
+                                    'user::forceDeleteAny',
+                                    'user::update',
+                                    'user::updateAny',
+                                ])
+                            ) {
                                 return true;
                             }
 
@@ -205,24 +271,26 @@ class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
                 Tables\Actions\DeleteAction::make()
                     ->label(static::getActionLabel('delete'))
                     ->hidden(
-                        function(Model $record): bool {
-                            if (!auth()->user()->canAny([
-                                // 'user::create',
-                                'user::delete',
-                                'user::deleteAny',
-                                'user::edit',
-                                'user::editAny',
-                                'user::forceDelete',
-                                'user::forceDeleteAny',
-                                // 'user::list',
-                                // 'user::listAll',
-                                // 'user::reorder',
-                                // 'user::reorderAny',
-                                // 'user::restore',
-                                // 'user::restoreAny',
-                                'user::update',
-                                'user::updateAny',
-                            ])) {
+                        function (Model $record): bool {
+                            if (
+                                !auth()->user()->canAny([
+                                    // 'user::create',
+                                    'user::delete',
+                                    'user::deleteAny',
+                                    'user::edit',
+                                    'user::editAny',
+                                    'user::forceDelete',
+                                    'user::forceDeleteAny',
+                                    // 'user::list',
+                                    // 'user::listAll',
+                                    // 'user::reorder',
+                                    // 'user::reorderAny',
+                                    // 'user::restore',
+                                    // 'user::restoreAny',
+                                    'user::update',
+                                    'user::updateAny',
+                                ])
+                            ) {
                                 return true;
                             }
 
@@ -240,7 +308,8 @@ class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\GroupsRelationManager::class,
+            RelationManagers\PermissionsRelationManager::class,
         ];
     }
 

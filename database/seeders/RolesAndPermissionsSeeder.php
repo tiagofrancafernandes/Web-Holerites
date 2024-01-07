@@ -38,15 +38,25 @@ class RolesAndPermissionsSeeder extends Seeder
                 ],
             ]
         )?->map(fn($permissionName) => [
-            'name' => $permissionName,
-            'guard_name' => 'web',
-            'is_canonical' => true,
-            'created_at' => $now->format('Y-m-d H:i:s'),
-            'updated_at' => $now->format('Y-m-d H:i:s'),
-        ])
-        ->each(fn($permissionName) => Permission::firstOrCreate([
-            'name' => $permissionName,
-        ], $permissionName));
+                'name' => $permissionName,
+                'is_canonical' => true,
+                'created_at' => $now->format('Y-m-d H:i:s'),
+                'updated_at' => $now->format('Y-m-d H:i:s'),
+            ])
+            ->each(
+                function ($permissionData) {
+                    foreach (['web', 'api'] as $guardName) {
+                        $permissionData['guard_name'] = $guardName;
+
+                        $data = $permissionData;
+                        $data['name'] = ($guardName === 'api') ? ($guardName . '::' . $data['name']) : $data['name'];
+
+                        Permission::firstOrCreate([
+                            'name' => $data['name'],
+                        ], $data);
+                    }
+                }
+            );
 
         // create roles and assign created permissions
 
@@ -78,12 +88,28 @@ class RolesAndPermissionsSeeder extends Seeder
                 ?->values()
                 ?->map(fn($permissionName) => [
                 'name' => $permissionName,
-                'guard_name' => 'web',
                 'is_canonical' => true,
                 'created_at' => $now->format('Y-m-d H:i:s'),
                 'updated_at' => $now->format('Y-m-d H:i:s'),
             ])
                 ?->toArray();
+
+        $permissionList = value(function (array $permissionList): array {
+            foreach ($permissionList as $key => $permissionData) {
+                $name = trim($permissionData['name'] ?? '');
+                unset($permissionList[$key]);
+
+                foreach (['web', 'api'] as $guardName) {
+                    $newKey = md5("{$guardName}{$name}");
+                    $tempData = $permissionData;
+                    $tempData['guard_name'] = $guardName;
+                    $tempData['name'] = ($guardName === 'api') ? ($guardName . '::' . $name) : $name;
+                    $permissionList[$newKey] = $tempData;
+                }
+            }
+
+            return $permissionList ?? [];
+        }, $permissionList);
 
         Permission::upsert(
             $permissionList,
@@ -152,27 +178,48 @@ class RolesAndPermissionsSeeder extends Seeder
                 'document::viewAny',
                 'document::manage',
             ],
-        ])->each(function ($rolePermissions, $roleName) use ($globalPermissions) {
-            $role = Role::firstOrCreate([
-                'name' => $roleName,
-                'is_canonical' => true,
-            ]);
-            $role->syncPermissions([
-                ...$rolePermissions,
-                ...$globalPermissions,
-            ]);
-        });
+        ])
+            ->each(function ($rolePermissions, $roleName) use ($globalPermissions) {
+                foreach (['web', 'api'] as $guardName) {
+                    $role = Role::firstOrCreate([
+                        'name' => ($guardName === 'api') ? ($roleName . '-' . $guardName) : $roleName,
+                        'is_canonical' => true,
+                        'guard_name' => $guardName,
+                    ]);
 
-        $allPermissions = Permission::all();
+                    $permissionPrefix = ($guardName === 'api') ? 'api::' : '';
+
+                    $permissions = collect($rolePermissions)->map(
+                        fn($permission) => "{$permissionPrefix}{$permission}"
+                    )->values()->all();
+
+                    $role->syncPermissions([
+                        ...$permissions,
+                        ...(($guardName === 'api') ? [] : $globalPermissions),
+                    ]);
+                }
+            });
 
         $superAdminRole = Role::firstOrCreate([
             'name' => 'super-admin',
+            'guard_name' => 'web',
             'is_canonical' => true,
         ]);
-        // $superAdminRole->givePermissionTo(Permission::all());
-        $superAdminRole->syncPermissions($allPermissions);
 
-        // User::where('email', 'like', 'admin@mail.com')->first()?->permissions()->sync($allPermissions);
-        User::where('email', 'like', 'admin@mail.com')->first()?->roles()->sync($superAdminRole);
+        $superAdminRoleApi = Role::firstOrCreate([
+            'name' => 'api-super-admin',
+            'guard_name' => 'api',
+            'is_canonical' => true,
+        ]);
+
+        $superAdminRole->syncPermissions(Permission::where('guard_name', 'web')->get());
+        $superAdminRoleApi->syncPermissions(Permission::where('guard_name', 'api')->get());
+
+        User::where('email', 'like', 'admin@mail.com')
+            ->first()
+                ?->roles()->sync(array_filter([
+                        $superAdminRole?->id,
+                        $superAdminRoleApi?->id,
+                    ]));
     }
 }

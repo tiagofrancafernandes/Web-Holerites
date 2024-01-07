@@ -71,6 +71,8 @@ return [
         'pluralModelLabel' => 'Roles',
         'actions' => [
             'create' => 'Create new role',
+            'attach' => 'Attach role',
+            'detach' => 'Detach role',
         ],
         'table' => [
             'id' => 'ID',
@@ -95,7 +97,9 @@ return [
         'titleCaseModelLabel' => 'Permission',
         'pluralModelLabel' => 'Permissions',
         'actions' => [
-            'create' => 'Create new Permission',
+            'create' => 'Create new permission',
+            'attach' => 'Attach permission',
+            'detach' => 'Detach permission',
         ],
         'table' => [
             'id' => 'ID',
@@ -122,6 +126,14 @@ return [
         'actions' => [
             'create' => 'Create new User',
         ],
+        'Relations' => [
+            'permissions' => [
+                'title' => 'Granular Permissions',
+            ],
+            'groups' => [
+                'title' => 'Groups',
+            ],
+        ],
         'table' => [
             'id' => 'ID',
             'name' => 'Name',
@@ -137,8 +149,14 @@ return [
             'name' => 'Name',
             'email' => 'E-mail',
             'password' => 'Password',
+            'show_password' => 'Show password',
+            'password_confirmation' => 'Password confirmation',
             'status' => 'Status',
             'language' => 'Language',
+            'main_web_role' => 'Main WEB role',
+            'main_api_role' => 'Main API role',
+            'section_roles_heading' => 'Roles',
+            'section_extra_info_heading' => 'Extra info',
         ],
         'filters' => [
             'status' => 'Status',
