@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Permission;
+use App\Models\Role;
 
 class SystemUserSeeder extends Seeder
 {
@@ -14,51 +16,125 @@ class SystemUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            RolesAndPermissionsSeeder::class,
-        ]);
-
-        $superUsers = \collect([
+        $initialUsers = collect([
             [
-                'id' => '996b2511-6e07-42a2-b112-bddaaa7229fe',
+                // 'id' => '996b2511-6e07-42a2-b112-bddaaa7229fe',
+                // 'remember_token' => Str::random(10),
                 'name' => 'Admin',
                 'email' => 'admin@mail.com',
                 'email_verified_at' => now(),
-                'password' => Hash::make('power@123'),
-                // 'remember_token' => Str::random(10),
+                'password' => 'power@123',
                 'language' => config('app.locale'),
                 'is_canonical' => true,
+                'roles' => [
+                    'super-admin',
+                    'api-super-admin',
+                ],
+                'permissions' => [ // Granular permission
+                    //
+                ],
             ]
         ]);
 
-        $superUsers->each(
-            function ($superUser) {
-                $user = User::firstOrCreate([
-                    'email' => $superUser['email'],
-                ], $superUser);
+        if (!app()->isProduction()) {
+            // Has no reason to populate demo data on prodution
 
-                $user->syncRoles(['super-admin']);
+            $initialUsers->push(
+                [
+                    // 'remember_token' => Str::random(10),
+                    'name' => 'Gestor Demo',
+                    'email' => 'gestor@mail.com',
+                    'email_verified_at' => now(),
+                    'password' => 'power@123',
+                    'language' => config('app.locale'),
+                    'is_canonical' => true,
+                    'roles' => [
+                        'gestor',
+                        // 'gestor-api', // Only for API use (optional)
+                    ],
+                    'permissions' => [ // Granular permission
+                        //
+                    ],
+                ],
+                [
+                    // 'remember_token' => Str::random(10),
+                    'name' => 'Colaborador Demo',
+                    'email' => 'colaborador@mail.com',
+                    'email_verified_at' => now(),
+                    'password' => 'power@123',
+                    'language' => config('app.locale'),
+                    'is_canonical' => true,
+                    'roles' => [
+                        'colaborador',
+                        // 'colaborador-api', // Only for API use (optional)
+                    ],
+                    'permissions' => [ // Granular permission
+                        //
+                    ],
+                ],
+            );
+        }
+
+        $initialUsers->each(
+            function ($userData) {
+                $userData['password'] = Hash::make($userData['password'] ?? 'power@123');
+                $userData = collect($userData);
+
+                $user = User::firstOrCreate(
+                    [
+                        'email' => $userData->get('email'),
+                    ],
+                    $userData->only([
+                        'name',
+                        'email',
+                        'email_verified_at',
+                        'password',
+                        'language',
+                        'is_canonical',
+                    ])->toArray()
+                );
+
+                $user->roles()->sync(
+                    Role::select('id')
+                        ->whereIn(
+                            'name',
+                            $userData
+                                ->only('roles')->flatMap(fn($item) => $item)->toArray()
+                        )
+                        ->get()
+                );
+
+                $user->permissions()->sync(
+                    Permission::select('id')
+                        ->whereIn(
+                            'name',
+                            $userData
+                                ->only('permissions')->flatMap(fn($item) => $item)->toArray()
+                        )
+                        ->get()
+                );
             }
         );
 
-        // ## https://spatie.be/docs/laravel-permission/v5/basic-usage/role-permissions#assigning-roles
-        // ## Adicionando uma permissão específica à um usuário
-        // $user->givePermissionTo('edit articles');
+        $this->finalInfoTable([
+            'initialUsers' => $initialUsers,
+        ]);
+    }
 
-        // ## Adicionando uma role à um usuário
-        // $user->assignRole('writer');
+    public function finalInfoTable(array $info = [])
+    {
+        $initialUsers = collect($info['initialUsers'] ?? []);
 
-        // ## Removendo uma role de um usuário
-        // $user->removeRole('writer');
-
-        // // Todos os papéis atuais serão removidor e substituido pelos informados no array
-        // $user->syncRoles(['writer', 'admin']);
-
-        if (app()->isProduction()) {
-            return;
-        }
-
-        // User::factory(5)->create();
-        // User::factory(5)->unverified()->create();
+        $this->command->newLine(2);
+        $this->command->table(
+            ['Name', 'E-mail', 'Password', 'Roles'],
+            $initialUsers->map(fn($item) => [
+                $item['name'] ?? null,
+                $item['email'] ?? null,
+                '<question>' . ($item['password'] ?? null) . '</question>',
+                implode(', ', $item['roles'] ?? []),
+            ])->toArray()
+        );
+        $this->command->newLine(2);
     }
 }

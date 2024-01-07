@@ -63,7 +63,6 @@ class UserResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
                             ->columns(4)
                             ->columnSpanFull(),
 
-
                         Forms\Components\Section::make(__('Password'))
                             ->schema([
                                 Forms\Components\TextInput::make('password')

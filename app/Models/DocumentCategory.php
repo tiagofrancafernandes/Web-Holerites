@@ -37,6 +37,7 @@ class DocumentCategory extends Model
         'show_on_tab_filter',
         'order_on_tab_filter',
         'icon',
+        'is_canonical',
     ];
 
     /**
@@ -46,6 +47,7 @@ class DocumentCategory extends Model
      */
     protected $casts = [
         'show_on_tab_filter' => 'boolean',
+        'is_canonical' => 'boolean',
     ];
 
     public function children(): HasMany
@@ -97,6 +99,7 @@ class DocumentCategory extends Model
                         'documents.document_category_id',
                         DB::raw('COUNT(*) as count'),
                     ])
+                    ->where("{$categoriesAlias}.show_on_tab_filter", true)
                     ->leftJoin(
                         "document_categories as {$categoriesAlias}",
                         "{$categoriesAlias}.id",

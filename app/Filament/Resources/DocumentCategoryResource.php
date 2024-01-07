@@ -54,60 +54,104 @@ class DocumentCategoryResource extends \App\Filament\Resources\Extended\Extended
                         ->searchable(),
                 ])
                 ->collapsible()
-                ->collapsed(fn (?Model $record) => !$record?->parent_id)
+                ->collapsed(fn(?Model $record) => !$record?->parent_id)
                 ->columnSpanFull(),
 
-            Forms\Components\TextInput::make('name')
-                ->label(static::getTableAttributeLabel('name'))
-                ->required()
-                ->maxLength(255)
-                ->live(onBlur: true)
-                ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
-                    if (!in_array($operation, ['create', 'createOption'])) {
-                        return;
-                    }
+            Forms\Components\Section::make()
+                ->schema([
+                    Forms\Components\TextInput::make('name')
+                        ->readOnly(fn(?Model $record) => boolval($record?->is_canonical))
+                        ->disabled(fn(?Model $record) => boolval($record?->is_canonical))
+                        ->helperText(
+                            fn(?Model $record) => boolval($record?->is_canonical)
+                            ? __('models.general.texts.edition_disabled_because_is_canonical') : ''
+                        )
+                        ->label(static::getTableAttributeLabel('name'))
+                        ->required()
+                        ->maxLength(255)
+                        ->live(onBlur: true)
+                        ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
+                            if (!in_array($operation, ['create', 'createOption'])) {
+                                return;
+                            }
 
-                    $set('slug', Str::slug($state));
-                    $set('seo_title', Str::ucfirst($state));
-                    $set('name', Str::ucfirst($state));
-                })
-                ->unique(DocumentCategory::class, 'name', ignoreRecord: true),
+                            $set('slug', Str::slug($state));
+                            $set('seo_title', Str::ucfirst($state));
+                            $set('name', Str::ucfirst($state));
+                        })
+                        ->unique(DocumentCategory::class, 'name', ignoreRecord: true)
+                        ->columnSpan(3),
 
-            Forms\Components\TextInput::make('slug')
-                ->label(
-                    static::getTableAttributeLabel('slug')
-                )
-                ->disabled()
-                ->reactive()
-                ->dehydrated()
-                ->required()
-                ->maxLength(255)
-                ->unique(DocumentCategory::class, 'slug', ignoreRecord: true),
+                    Forms\Components\TextInput::make('slug')
+                        ->label(
+                            static::getTableAttributeLabel('slug')
+                        )
+                        ->disabled()
+                        ->reactive()
+                        ->dehydrated()
+                        ->required()
+                        ->maxLength(255)
+                        ->unique(DocumentCategory::class, 'slug', ignoreRecord: true)
+                        ->columnSpan(3),
 
-            Forms\Components\TextInput::make('seo_title')
-                ->label(
-                    static::getTableAttributeLabel('seo_title')
-                )
-                ->maxLength(60),
+                    Forms\Components\Textarea::make('description')
+                        ->label(
+                            static::getTableAttributeLabel('description')
+                        )
+                        ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
+                            if (!in_array($operation, ['create', 'createOption'])) {
+                                return;
+                            }
 
-            Forms\Components\Textarea::make('description')
-                ->label(
-                    static::getTableAttributeLabel('description')
-                )
-                ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
-                    if (!in_array($operation, ['create', 'createOption'])) {
-                        return;
-                    }
-
-                    $set('seo_description', $state);
-                })
+                            $set('seo_description', $state);
+                        })
+                        ->columnSpanFull(),
+                ])
+                ->columns(6)
                 ->columnSpanFull(),
 
-            Forms\Components\Textarea::make('seo_description')
-                ->label(
-                    static::getTableAttributeLabel('seo_description')
-                )
-                ->maxLength(160)
+            Forms\Components\Section::make()
+                ->heading(__('Visibility'))
+                ->schema([
+                    Forms\Components\Toggle::make('show_on_tab_filter')
+                        ->label(
+                            static::getTableAttributeLabel('show_on_tab_filter')
+                        )
+                        ->inline(false)
+                        ->inlineLabel(false)
+                        ->dehydrated()
+                        ->columnSpan(3),
+
+                    Forms\Components\TextInput::make('order_on_tab_filter')
+                        ->label(
+                            static::getTableAttributeLabel('order_on_tab_filter')
+                        )
+                        ->numeric()
+                        ->dehydrated()
+                        ->columnSpan(3),
+                ])
+                ->collapsed()
+                ->columns(6)
+                ->columnSpanFull(),
+
+            Forms\Components\Section::make('SEO')
+                ->schema([
+                    Forms\Components\TextInput::make('seo_title')
+                        ->label(
+                            static::getTableAttributeLabel('seo_title')
+                        )
+                        ->maxLength(60)
+                        ->columnSpanFull(),
+
+                    Forms\Components\Textarea::make('seo_description')
+                        ->label(
+                            static::getTableAttributeLabel('seo_description')
+                        )
+                        ->maxLength(160)
+                        ->columnSpanFull(),
+                ])
+                ->collapsed()
+                ->columns(6)
                 ->columnSpanFull(),
         ];
     }
@@ -181,7 +225,7 @@ class DocumentCategoryResource extends \App\Filament\Resources\Extended\Extended
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Tables\Actions\Action $action) => $action
+                fn(\Filament\Tables\Actions\Action $action) => $action
                     ->button()
                     ->label(__('Filter')),
             )
@@ -190,10 +234,31 @@ class DocumentCategoryResource extends \App\Filament\Resources\Extended\Extended
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->label(static::getActionLabel('edit')),
-                Tables\Actions\ViewAction::make(),
+                    ->label(static::getActionLabel('edit'))
+                    ->hidden(
+                        fn(?Model $record) => !static::allowed(
+                            ['edit', 'editAny'],
+                            $record
+                        )
+                    )->after(fn() => DocumentCategory::tabList(true)),
+
                 Tables\Actions\DeleteAction::make()
-                ->label(static::getActionLabel('delete')),
+                    ->label(static::getActionLabel('delete'))
+                    ->hidden(
+                        fn(?Model $record) => boolval($record?->is_canonical) || !static::allowed(
+                            ['delete', 'deleteAny'],
+                            $record
+                        )
+                    )->after(fn() => DocumentCategory::tabList(true)),
+
+                Tables\Actions\ViewAction::make()
+                    ->label(static::getActionLabel('view'))
+                    ->hidden(
+                        fn(?Model $record) => !static::allowed(
+                            ['view', 'viewAny'],
+                            $record
+                        )
+                    ),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

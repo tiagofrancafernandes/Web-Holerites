@@ -37,6 +37,10 @@ class RoleResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 
                 Forms\Components\Select::make('guard_name')
                     ->disabled(fn(?Model $record) => boolval($record?->is_canonical))
+                    ->helperText(
+                        fn(?Model $record) => boolval($record?->is_canonical)
+                        ? __('models.general.texts.edition_disabled_because_is_canonical') : ''
+                    )
                     ->label(__('models.Role.form.guard_name'))
                     ->placeholder('Select a guard name')
                     ->options([
@@ -108,11 +112,12 @@ class RoleResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 
                 Tables\Actions\ViewAction::make()
                     ->label(static::getActionLabel('view'))
-                    ->hidden(fn(?Model $record) => !static::allowed(
-                        ['view', 'viewAny'],
-                        $record
-                    )
-                ),
+                    ->hidden(
+                        fn(?Model $record) => !static::allowed(
+                            ['view', 'viewAny'],
+                            $record
+                        )
+                    ),
             ])
             // ->paginated([10, 25, 50, 100, 'all'])
             ->bulkActions([

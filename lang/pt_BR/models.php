@@ -1,12 +1,18 @@
 <?php
 
 return [
+    'general' => [
+        'texts' => [
+            'edition_disabled_because_is_canonical' => 'Edição desativada pois o item é canônico',
+        ],
+    ],
     'fallback' => [
         'actions' => [
             'create' => 'Criar',
             'view-mode' => 'Modo de visualização',
             'edit-mode' => 'Modo de edição',
             'view' => 'Visualizar',
+            'edit' => 'Editar',
         ],
         'table' => [
             'id' => 'ID',
@@ -64,6 +70,8 @@ return [
             'description' => 'Descrição',
             'seo_title' => 'SEO - Título',
             'seo_description' => 'SEO - Descrição',
+            'order_on_tab_filter' => 'Ordem no filtro por guia',
+            'show_on_tab_filter' => 'Mostrar no filtro por guia?',
             'created_at' => 'Criado em',
             'updated_at' => 'Atualizado em',
             'deleted_at' => 'Inativado em',
@@ -76,6 +84,8 @@ return [
             'description' => 'Descrição',
             'seo_title' => 'SEO - Título',
             'seo_description' => 'SEO - Descrição',
+            'order_on_tab_filter' => 'Ordem no filtro por guia',
+            'show_on_tab_filter' => 'Mostrar no filtro por guia?',
         ],
         'filters' => [
             'status' => 'Status',

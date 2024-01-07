@@ -67,6 +67,10 @@ class PermissionResource extends \App\Filament\Resources\Extended\ExtendedResour
 
                 Forms\Components\Select::make('guard_name')
                     ->disabled(fn(?Model $record) => boolval($record?->is_canonical))
+                    ->helperText(
+                        fn(?Model $record) => boolval($record?->is_canonical)
+                        ? __('models.general.texts.edition_disabled_because_is_canonical') : ''
+                    )
                     ->label(__('models.Permission.form.guard_name'))
                     ->placeholder('Select a guard name')
                     ->options([
@@ -137,11 +141,12 @@ class PermissionResource extends \App\Filament\Resources\Extended\ExtendedResour
 
                 Tables\Actions\ViewAction::make()
                     ->label(static::getActionLabel('view'))
-                    ->hidden(fn(?Model $record) => !static::allowed(
-                        ['view', 'viewAny'],
-                        $record
-                    )
-                ),
+                    ->hidden(
+                        fn(?Model $record) => !static::allowed(
+                            ['view', 'viewAny'],
+                            $record
+                        )
+                    ),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

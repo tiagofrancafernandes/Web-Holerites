@@ -17,8 +17,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             BrazilCitiesSeeder::class,
             RolesAndPermissionsSeeder::class,
-            SystemUserSeeder::class,
+            // SystemUserSeeder::class,
             DocumentCategorySeeder::class,
+            DocumentSeeder::class,
         ]);
     }
 }

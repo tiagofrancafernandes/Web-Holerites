@@ -15,7 +15,13 @@
                 </h2>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ filament()->getUserName($user) }}
+                    <span class="font-semibold group-hover/link:underline group-focus-visible/link:underline text-sm text-custom-600 dark:text-custom-400" style="--c-400:var(--primary-400);--c-600:var(--primary-600);">
+                        {{ filament()->getUserName($user) }}
+                    </span>
+
+                    @if ($mainWebRole = $user?->mainWebRole?->name)
+                        [{{ $mainWebRole }}]
+                    @endif
                 </p>
             </div>
 

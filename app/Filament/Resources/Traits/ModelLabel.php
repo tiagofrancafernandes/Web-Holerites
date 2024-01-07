@@ -4,6 +4,24 @@ namespace App\Filament\Resources\Traits;
 
 trait ModelLabel
 {
+    public static function getTranslatedDotLabel(string $key, ?string $default = null): string
+    {
+        $key = str($key);
+        $key = $key->startsWith('models.') ? $key->after('models.') : $key;
+
+        $value = __(
+            $key
+                ->prepend('models.')
+                ->toString()
+        );
+
+        if (!str($value)->startsWith('models.')) {
+            return $value;
+        }
+
+        return $default ?? __(str($key)->headline()->title()->toString());
+    }
+
     public static function getTranslatedLabel(string $key, string $parentKey, ?string $model = null): string
     {
         $model ??= str(

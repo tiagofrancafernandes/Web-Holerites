@@ -31,7 +31,7 @@ class ManageDocuments extends ListRecords
     public function getTabs(): array
     {
         $authUser = auth()->user();
-        $updateCache = request()->boolean('updateCache') ?? request()->boolean('noCache', false);
+        $updateCache = boolval(request()->input('updateCache') ?? request()->input('noCache', false));
 
         $userDocumentStatusAllowed = cache()
             ->remember(

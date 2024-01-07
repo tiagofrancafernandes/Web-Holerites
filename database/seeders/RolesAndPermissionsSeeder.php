@@ -215,11 +215,8 @@ class RolesAndPermissionsSeeder extends Seeder
         $superAdminRole->syncPermissions(Permission::where('guard_name', 'web')->get());
         $superAdminRoleApi->syncPermissions(Permission::where('guard_name', 'api')->get());
 
-        User::where('email', 'like', 'admin@mail.com')
-            ->first()
-                ?->roles()->sync(array_filter([
-                        $superAdminRole?->id,
-                        $superAdminRoleApi?->id,
-                    ]));
+        $this->call([
+            SystemUserSeeder::class,
+        ]);
     }
 }

@@ -53,7 +53,7 @@ class ListDocuments extends ListRecords
 
     public function getTabs(): array
     {
-        $updateCache = request()->boolean('updateCache') ?? request()->boolean('noCache', false);
+        $updateCache = boolval(request()->input('updateCache') ?? request()->input('noCache', false));
 
         $categories = DocumentCategory::tabList($updateCache);
 

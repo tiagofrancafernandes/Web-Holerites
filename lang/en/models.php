@@ -2,10 +2,34 @@
 
 return [
     'general' => [
-        'id' => 'ID',
-        'created_at' => 'Created at',
-        'updated_at' => 'Updated at',
-        'deleted_at' => 'Deleted at',
+        'texts' => [
+            'edition_disabled_because_is_canonical' => 'Editing disabled because the item is canonical',
+        ],
+    ],
+    'fallback' => [
+        'actions' => [
+            'create' => 'Create',
+            'view-mode' => 'View mode',
+            'view' => 'View',
+            'edit-mode' => 'Edit mode',
+            'edit' => 'Edit',
+        ],
+        'table' => [
+            'id' => 'ID',
+            'name' => 'Nome',
+            'slug' => 'Slug',
+            'created_at' => 'Criado em',
+            'updated_at' => 'Atualizado em',
+            'deleted_at' => 'Inativado em',
+        ],
+        'form' => [
+            'id' => 'ID',
+            'name' => 'Nome',
+            'slug' => 'Slug',
+        ],
+        'filters' => [
+            //
+        ],
     ],
     'Document' => [
         'modelLabel' => 'Document',
@@ -48,6 +72,7 @@ return [
             'description' => 'Description',
             'seo_title' => 'SEO title',
             'seo_description' => 'SEO description',
+            'order_on_tab_filter' => 'Order in the tab filter',
             'created_at' => 'Created at',
             'updated_at' => 'Updated at',
             'deleted_at' => 'Deleted at',
@@ -60,6 +85,8 @@ return [
             'description' => 'Description',
             'seo_title' => 'SEO title',
             'seo_description' => 'SEO description',
+            'order_on_tab_filter' => 'Order in the tab filter',
+            'show_on_tab_filter' => 'Show on tab filter',
         ],
         'filters' => [
             'status' => 'Status',
