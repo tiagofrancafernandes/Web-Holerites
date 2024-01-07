@@ -17,8 +17,8 @@ class DocumentCategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => str(fake()->words(3, true))->title(),
-            'slug' => fn(array $attr) => str($attr['name'] ?? fake()->words(3, true))->slug(),
+            'name' => str(fake()->words(2, true))->title(),
+            'slug' => fn(array $attr) => str($attr['name'] ?? fake()->words(2, true))->slug(),
             'icon' => null,
             'show_on_tab_filter' => fake()->boolean(90),
             'order_on_tab_filter' => rand(1, 10),

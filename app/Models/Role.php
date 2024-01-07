@@ -43,4 +43,37 @@ class Role extends \Spatie\Permission\Models\Role
             ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
             ->forget(config('permission.cache.key'));
     }
+
+    public static function afterAction(string $action = null): void
+    {
+        match ($action) {
+            'create' => static::afterCreate(),
+            'save', 'update' => static::afterUpdate(),
+            default => null,
+        };
+
+        static::clearCache();
+    }
+
+    public static function afterCreate(): void
+    {
+        static::syncAllPermissions();
+    }
+
+    public static function afterUpdate(): void
+    {
+        static::syncAllPermissions();
+    }
+
+    public static function syncAllPermissions(): void
+    {
+        static::clearCache();
+
+        $superAdminRole = Role::firstOrCreate([
+            'name' => 'super-admin',
+            'is_canonical' => true,
+        ]);
+
+        $superAdminRole->syncPermissions(Permission::all());
+    }
 }

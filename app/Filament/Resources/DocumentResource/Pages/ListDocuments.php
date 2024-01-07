@@ -11,10 +11,23 @@ use App\Enums\DocumentStatus;
 use App\Models\DocumentCategory;
 use Filament\Support\Enums\IconPosition;
 use Illuminate\Database\Eloquent\Model;
+use Livewire\Attributes\Url;
 
 class ListDocuments extends ListRecords
 {
     use ExposesTableToWidgets;
+
+    /**
+     * @var array<string, mixed> | null
+     */
+    #[Url]
+    public ?array $tableFilters = null;
+
+    /**
+     * @var string | null
+     */
+    #[Url]
+    public ?string $activeTab = null;
 
     protected static string $resource = DocumentResource::class;
 
@@ -45,14 +58,17 @@ class ListDocuments extends ListRecords
     {
         $updateCache = request()->boolean('updateCache', false);
 
-        return collect(DocumentCategory::tabList($updateCache))
-            ->mapWithKeys(function (DocumentCategory $category) {
+        $categories = DocumentCategory::tabList($updateCache);
+
+        return collect($categories)
+            ->mapWithKeys(function (object $category) {
 
                 $tab = Tab::make()
+                    ->label($category?->name)
+                    ->badge($category?->count)
                     ->query(
-                        fn($query) => $query->where('document_category_id', $category->id)
-                    )
-                    ->label($category?->name);
+                    fn($query) => $query->where('document_category_id', $category->id)
+                );
 
                 if ($category?->icon) {
                     $tab = $tab->icon($category?->icon);
@@ -63,7 +79,13 @@ class ListDocuments extends ListRecords
                 ];
             })
             ->prepend(
-                Tab::make('All')->label(__('All')),
+                Tab::make('All')
+                    ->label(__('All'))
+                    ->badge(
+                        $categories
+                            ?->pluck('count')
+                            ?->sum()?: ''
+                    ),
                 'ALL'
             )
             ->toArray();

@@ -44,7 +44,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Documentos';
+        return __('filament/navigation.groups.documents');
     }
 
     public static function form(Form $form): Form
@@ -335,6 +335,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
     public static function table(Table $table): Table
     {
         return $table
+            ->striped()
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label(
@@ -410,15 +411,18 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                 //         2 => 'Waiting contact',
                 //     ]),
 
-                // Tables\Filters\SelectFilter::make('category')
+                // Tables\Filters\SelectFilter::make('document_category_id')
                 //     ->label('Categoria')
                 //     ->options(
-                //         fn (): array => DocumentCategory::query()
-                //             ->select(['name', 'id'])
-                //             ?->distinct()
-                //             ?->pluck('name', 'id')
-                //             ->unique()
-                //             ?->all()
+                //         function () {
+                //             $updateCache = request()->boolean('updateCache', false);
+
+                //             $categories = DocumentCategory::tabList($updateCache);
+
+                //             return $categories?->pluck('name', 'id')
+                //                     ?->unique()
+                //                     ?->toArray() ?? [];
+                //         }
                 //     )
                 //     ->native(false)
                 //     ->searchable(),
@@ -426,9 +430,9 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                 Filter::make('created_at')
                     ->form([
                         DatePicker::make('created_from')
-                            ->label('Criado de'),
-                        DatePicker::make('created_until')
-                            ->label('Criado até'),
+                            ->label('Cadastrado a partir de'),
+                            DatePicker::make('created_until')
+                            ->label('Cadastrado até'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query

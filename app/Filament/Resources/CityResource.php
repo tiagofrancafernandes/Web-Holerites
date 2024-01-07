@@ -158,7 +158,7 @@ class CityResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
                     ->label(__('Filter')),
             )
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                //
             ])
             ->actions([
                 Tables\Actions\EditAction::make()

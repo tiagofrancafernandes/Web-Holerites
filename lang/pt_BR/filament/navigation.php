@@ -6,6 +6,7 @@ return [
         'cms' => 'CMS',
         'address' => 'Endereço',
         'global' => 'Global',
+        'documents' => 'Documentos',
     ],
     'menu-position-switcher' => [
         'title' => 'Alterar posição do menu',

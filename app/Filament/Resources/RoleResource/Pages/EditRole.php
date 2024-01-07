@@ -21,6 +21,6 @@ class EditRole extends EditRecord
 
     protected function afterSave(): void
     {
-        Role::clearCache();
+        Role::afterAction('save');
     }
 }

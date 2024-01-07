@@ -21,6 +21,6 @@ class CreateRole extends CreateRecord
 
     protected function afterCreate(): void
     {
-        Role::clearCache();
+        Role::afterAction('create');
     }
 }
