@@ -13,12 +13,6 @@ use Filament\Tables\Table;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use App\Filament\Resources\Traits\ModelLabel;
-
-
-use App\Filament\Resources\Shop\BrandResource\RelationManagers\ProductsRelationManager;
-use App\Filament\Resources\Shop\ProductResource\RelationManagers;
-use App\Filament\Resources\Shop\ProductResource\Widgets\ProductStats;
-use App\Models\Shop\Product;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Notifications\Notification;
 use Filament\Tables\Filters\QueryBuilder;
