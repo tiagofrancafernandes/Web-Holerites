@@ -13,7 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Filament\Facades\Filament;
 
-class ManageDocuments extends ListRecords
+class MyDocuments extends ListRecords
 {
     use ExposesTableToWidgets;
 
@@ -22,8 +22,7 @@ class ManageDocuments extends ListRecords
     protected function getActions(): array
     {
         return [
-            Actions\CreateAction::make()
-                ->label(static::getResource()::getActionLabel('create')),
+            //
         ];
     }
 
@@ -42,40 +41,24 @@ class ManageDocuments extends ListRecords
                 'userDocumentStatusAllowed-' . $authUser?->id,
                 60,
                 fn() => $authUser->getAllCachedPermissionsName($updateCache)
-                    ?->filter(fn($item) => str_contains($item, 'document_status::see.'))
-                    ?->values()
-                    ?->toArray()
+                        ?->filter(fn($item) => str_contains($item, 'document_status::see.'))
+                        ?->values()
+                        ?->toArray()
             );
 
         return collect(DocumentStatus::cases())
-                ->filter(fn ($item) => in_array("document_status::see.{$item?->name}", $userDocumentStatusAllowed))
-                ->mapWithKeys(fn($enum) => [
-                    $enum->name => Tab::make()
-                        ->query(
-                            fn($query) => $query->where('status', $enum->value)
-                        )->label($enum?->label())
-                ])
-                ->prepend(
-                    Tab::make('All')->label(__('All')),
-                    'ALL'
-                )
-                ->toArray();
-    }
-
-    public function getTitle(): string | Htmlable
-    {
-        return static::getResource()::getTranslatedDotLabel('models.Document.pages.ManageDocuments.title');
-    }
-
-    protected function authorizeAccess(): void
-    {
-        abort_unless(
-            Filament::auth()?->user()?->can([
-                'document::viewAny',
-                'document::manage',
-            ]),
-            403
-        );
+            ->filter(fn($item) => in_array("document_status::see.{$item?->name}", $userDocumentStatusAllowed))
+            ->mapWithKeys(fn($enum) => [
+                $enum->name => Tab::make()
+                    ->query(
+                        fn($query) => $query->where('status', $enum->value)
+                    )->label($enum?->label())
+            ])
+            ->prepend(
+                Tab::make('All')->label(__('All')),
+                'ALL'
+            )
+            ->toArray();
     }
 
     public function table(Table $table): Table
@@ -86,7 +69,15 @@ class ManageDocuments extends ListRecords
         $table = static::getResource()::table($table);
 
         return $table->modifyQueryUsing(function (Builder $query) {
-            return $query;
+            return $query->where('public', '!=', true)
+                ->where('release_date', '<', now())
+                ->where(function (Builder $query) {
+                    return $query->whereNull('available_until')
+                        ->orWhere('available_until', '>', now());
+                })
+                ->where('status', DocumentStatus::PUBLISHED)
+                // ->where('document_category_id', ?)
+            ;
         });
     }
 }

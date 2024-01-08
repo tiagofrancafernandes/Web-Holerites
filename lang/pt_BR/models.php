@@ -39,6 +39,17 @@ return [
             'create' => 'Cadastrar novo documento',
             'manage' => 'Gerenciar documentos',
         ],
+        'pages' => [
+            'ListDocuments' => [
+                'title' => 'Documentos',
+            ],
+            'MyDocuments' => [
+                'title' => 'Meus Documentos',
+            ],
+            'ManageDocuments' => [
+                'title' => 'Gerenciar documentos',
+            ],
+        ],
         'table' => [
             'id' => 'ID',
             'title' => 'Título',

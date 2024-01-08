@@ -27,6 +27,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Filament\Infolists\Components\Section;
 use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\DatePicker;
+use Filament\Facades\Filament;
 
 class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 {
@@ -149,7 +150,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->native(false),
 
                                 Forms\Components\Toggle::make('public')
-                                    ->label('Visível?')
+                                    ->label('Público?')
                                     ->helperText('Se esse item poderá ser visualizado')
                                     ->default(true)
                                     ->hidden(
@@ -496,18 +497,6 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
         );
     }
 
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListDocuments::route('/'),
-            'manage' => Pages\ManageDocuments::route('/manage'),
-            'create' => Pages\CreateDocument::route('/create'),
-            'edit' => Pages\EditDocument::route('/{record}/edit'),
-            'details' => Pages\ViewDocument::route('/{record}/view'),
-            // 'view' => Pages\ViewDocument::route('/{record}/view'),
-        ];
-    }
-
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -574,5 +563,57 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                     ->id('infolist_public_note')
                     ->columnSpanFull(),
             ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListDocuments::route('/'),
+            'manage' => Pages\ManageDocuments::route('/manage'),
+            'create' => Pages\CreateDocument::route('/create'),
+            'edit' => Pages\EditDocument::route('/{record}/edit'),
+            'details' => Pages\ViewDocument::route('/{record}/view'),
+            // 'view' => Pages\ViewDocument::route('/{record}/view'),
+        ];
+    }
+
+    public static function userCanManage(): bool
+    {
+        return auth()?->user()?->can([
+            'document::viewAny',
+            'document::manage',
+        ]) ?? false;
+    }
+
+    protected function authorizeAccess(): void
+    {
+        abort_unless(
+            Filament::auth()?->user()?->canAny([
+                'document_category::view',
+                'document_category::list',
+                'document_category::viewAny',
+            ]),
+            403
+        );
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        /**
+         * @var Builder  $query
+         */
+        $query = parent::getEloquentQuery();
+
+        if (static::userCanManage()) {
+            return $query;
+        }
+
+        return $query->where('public', '!=', true)
+                ->where('release_date', '<', now())
+                ->where(function (Builder $query) {
+                    return $query->whereNull('available_until')
+                        ->orWhere('available_until', '>', now());
+                })
+                ->where('status', DocumentStatus::PUBLISHED);
     }
 }

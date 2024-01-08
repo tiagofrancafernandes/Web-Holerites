@@ -130,6 +130,6 @@ trait ModelLabel
     public static function getNavigationBadge(): ?string
     {
         // return static::$model::whereColumn('qty', '<', 'security_stock')->count();
-        return static::getModel()::count();
+        return static::getEloquentQuery()->count();
     }
 }

@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Filament\Resources\DocumentResource;
+use App\Enums\DocumentStatus;
+use Illuminate\Database\Query\Builder;
 
 class DocumentCategory extends Model
 {
@@ -92,13 +95,25 @@ class DocumentCategory extends Model
             ->remember(
                 $cacheKey,
                 60,
-                fn() =>
-                DB::table('documents')
+                fn() => DB::table('documents')
                     ->select([
                         ...$categoriesToSelect,
                         'documents.document_category_id',
                         DB::raw('COUNT(*) as count'),
                     ])
+                    ->where(function (Builder $query) {
+                        if (DocumentResource::userCanManage()) {
+                            return $query;
+                        }
+
+                        return $query->where('public', '!=', true)
+                            ->where('release_date', '<', now())
+                            ->where(function (Builder $query) {
+                                return $query->whereNull('available_until')
+                                    ->orWhere('available_until', '>', now());
+                            })
+                            ->where('status', DocumentStatus::PUBLISHED?->value);
+                    })
                     ->where("{$categoriesAlias}.show_on_tab_filter", true)
                     ->leftJoin(
                         "document_categories as {$categoriesAlias}",

@@ -12,6 +12,7 @@ use App\Models\DocumentCategory;
 use Filament\Support\Enums\IconPosition;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Attributes\Url;
+use Illuminate\Contracts\Support\Htmlable;
 
 class ListDocuments extends ListRecords
 {
@@ -86,5 +87,14 @@ class ListDocuments extends ListRecords
                 'ALL'
             )
             ->toArray();
+    }
+
+    public function getTitle(): string|Htmlable
+    {
+        return static::getResource()::getTranslatedDotLabel(
+            DocumentResource::userCanManage()
+            ? 'models.Document.pages.ListDocuments.title'
+            : 'models.Document.pages.MyDocuments.title'
+        );
     }
 }

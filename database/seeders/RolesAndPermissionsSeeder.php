@@ -133,9 +133,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'document::list',
                 'document::view',
                 'document::viewAny',
-                'document_category::list',
-                'document_category::view',
-                'document_category::viewAny',
             ],
             'gestor' => [
                 'painel::access',
