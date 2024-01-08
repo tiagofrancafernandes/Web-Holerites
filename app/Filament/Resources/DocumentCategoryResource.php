@@ -16,6 +16,9 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\Traits\ModelLabel;
+use Guava\FilamentIconPicker\Layout;
+use App\Filament\Extended\Filament\Forms\IconPicker;
+use App\Filament\Extended\Filament\Tables\IconColumn;
 
 class DocumentCategoryResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
 {
@@ -94,6 +97,15 @@ class DocumentCategoryResource extends \App\Filament\Resources\Extended\Extended
                         ->unique(DocumentCategory::class, 'slug', ignoreRecord: true)
                         ->columnSpan(3),
 
+                    IconPicker::make('icon')
+                        ->label(
+                            static::getFormAttributeLabel('icon')
+                        )
+                        ->layout(Layout::ON_TOP)
+                        ->selectablePlaceholder()
+                        ->placeholderText('Selecione um ícone')
+                        ->columnSpanFull(),
+
                     Forms\Components\Textarea::make('description')
                         ->label(
                             static::getTableAttributeLabel('description')
@@ -160,6 +172,14 @@ class DocumentCategoryResource extends \App\Filament\Resources\Extended\Extended
     {
         return $table
             ->columns([
+                IconColumn::make('icon')
+                    ->hideIcon(fn(?Model $record) => !$record?->icon)
+                    ->useIcon('feathericon-tag')
+                    ->useIcon(fn(?Model $record) => $record?->icon)
+                    ->label(
+                        static::getTableAttributeLabel('icon')
+                    ),
+
                 Tables\Columns\TextColumn::make('name')
                     ->label(
                         static::getTableAttributeLabel('name')
