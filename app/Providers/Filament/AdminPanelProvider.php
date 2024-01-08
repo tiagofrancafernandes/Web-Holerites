@@ -18,6 +18,7 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Hasnayeen\Themes\ThemesPlugin;
+use Swis\Filament\Backgrounds\FilamentBackgroundsPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -76,13 +77,17 @@ class AdminPanelProvider extends PanelProvider
             ->maxContentWidth('full')
             ->topNavigation(boolval(static::prefersGet('topNavigation', false)))
             ->brandName(config('app.name', 'Meu PDI'))
-            ->plugin(
+            ->plugins([
                 ThemesPlugin::make()
                     ->canViewThemesPage(
                         fn () => true
                         // fn () => auth()->user()?->is_admin
                     ),
-            );
+
+                FilamentBackgroundsPlugin::make()
+                // ->showAttribution(false)
+                ->remember(900),
+            ]);
     }
 
     public static function prefersGet(string $key, mixed $defaultValue = null): mixed

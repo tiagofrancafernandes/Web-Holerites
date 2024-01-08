@@ -38,6 +38,7 @@
         "predis/predis": "^2.2",
         "spatie/laravel-html": "^3.3",
         "spatie/laravel-permission": "^6.3",
+        "swisnl/filament-backgrounds": "^1.1",
         "tiagof2/f2-laravel-enums": "^3.0"
     },
     "require-dev": {
