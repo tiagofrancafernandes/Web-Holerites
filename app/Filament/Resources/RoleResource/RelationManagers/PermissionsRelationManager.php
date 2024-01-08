@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\RoleResource\RelationManagers;
 
 use App\Filament\Resources\RoleResource;
+use App\Models\Permission;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -19,6 +20,7 @@ class PermissionsRelationManager extends RelationManager
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->unique(Permission::class, 'name', ignoreRecord: true)
                     ->required()
                     ->maxLength(255),
             ]);
@@ -45,7 +47,8 @@ class PermissionsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                // Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->after(fn() => Role::clearCache()),
                 Tables\Actions\AttachAction::make()
                     ->hidden(fn() => !RoleResource::allowed('permission::can_attach', toAddPrefix: false))
                     ->after(fn() => Role::clearCache())

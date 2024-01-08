@@ -87,6 +87,9 @@ class AdminPanelProvider extends PanelProvider
                 FilamentBackgroundsPlugin::make()
                 // ->showAttribution(false)
                 ->remember(900),
+
+                // View Laravel logs (to use, need implements protection)
+                // \FilipFonal\FilamentLogManager\FilamentLogManager::make(),
             ]);
     }
 
