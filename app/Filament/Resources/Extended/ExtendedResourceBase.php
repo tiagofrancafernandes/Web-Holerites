@@ -23,7 +23,7 @@ class ExtendedResourceBase extends \Filament\Resources\Resource
             return static::allowed(
                 $action,
                 $record
-            );
+            ); // get the reason
         }
 
         if (static::shouldSkipAuthorization()) {

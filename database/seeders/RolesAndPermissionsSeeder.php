@@ -15,6 +15,7 @@ use App\Models\City;
 use App\Models\Document;
 use App\Models\DocumentCategory;
 use App\Models\StorageFile;
+use App\Models\Group;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -69,13 +70,10 @@ class RolesAndPermissionsSeeder extends Seeder
             User::class,
             Role::class,
             Permission::class,
-            City::class,
             Document::class,
             DocumentCategory::class,
-            Permission::class,
-            Role::class,
+            Group::class,
             StorageFile::class,
-            User::class,
         ])
             ->unique()
             ->map(fn($modelClass) => str(class_basename($modelClass))->trim()->snake()->toString())

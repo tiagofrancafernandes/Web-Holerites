@@ -44,6 +44,11 @@ trait ACLHelpers
                 );
         }
 
-        return $canAny ? $user->canAny($toCheck?->toArray(), $arguments) : $user->can($toCheck?->toArray(), $arguments);
+        $checkResult = $canAny
+            ? $user->canAny($toCheck?->toArray(), $arguments)
+            : $user->can($toCheck?->toArray(), $arguments);
+
+        // return $checkResult || dd($toCheck); // Show fail reason
+        return $checkResult;
     }
 }
