@@ -7,6 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Storage;
 
+/**
+ * @property mixed $id
+ * @property mixed $disk_name
+ * @property mixed $path
+ * @property mixed $extension
+ * @property mixed $size_in_kb
+ * @property mixed $file_name
+ * @property mixed $original_name
+ * @property mixed $public
+ * @property mixed $uploaded_by
+ * @property mixed $reference_class
+ */
 class StorageFile extends Model
 {
     use HasFactory;

@@ -139,5 +139,12 @@
   "results": "resultados",
   "to": "até",
   "Visibility": "Visibilidade",
+  "File is required": "Arquivo obrigatório",
+  "Fail to load document file": "Falha ao carregar arquivo do documento",
+  "Invalid file": "Arquivo inválido",
+  "User": "Usuário",
+  "Users": "Usuários",
+  "Group": "Grupo",
+  "Groups": "Grupos",
   "end": "fim"
 }

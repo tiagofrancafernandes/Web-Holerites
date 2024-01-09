@@ -11,7 +11,11 @@ use App\Models\StorageFile;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use App\Enums\DocumentVisibleToType;
 
+/**
+ * @property ?int $storage_file_id
+ */
 class Document extends Model
 {
     use HasFactory;
@@ -30,6 +34,8 @@ class Document extends Model
         'created_by',
         'public',
         'document_category_id',
+        'visible_to_type',
+        'visible_to',
     ];
 
     protected $casts = [
@@ -37,6 +43,7 @@ class Document extends Model
         'release_date' => 'datetime',
         'available_until' => 'datetime',
         'public' => 'boolean',
+        'visible_to_type' => DocumentVisibleToType::class,
     ];
 
     /**
