@@ -46,6 +46,10 @@ class Document extends Model
         'visible_to_type' => DocumentVisibleToType::class,
     ];
 
+    protected $appends = [
+        'visibleType',
+    ];
+
     /**
      * Get the file associated with the Document
      *
@@ -108,5 +112,35 @@ class Document extends Model
         }
 
         return ($this->status == DocumentStatus::PUBLISHED) ? true : false;
+    }
+
+    public function getVisibleTypeAttribute()
+    {
+        return $this?->visible_to_type;
+    }
+
+    public function visibleToValue()
+    {
+        return match ($this?->visible_to_type) {
+            DocumentVisibleToType::EVERYONE => (object) ([
+                'name' => 'Geral'
+            ]),
+
+            DocumentVisibleToType::USER => User::select([
+                'id',
+                'name'
+            ])
+                ->where('id', $this->visible_to)
+                ->first(),
+
+            DocumentVisibleToType::GROUP => Group::select([
+                'id',
+                'name'
+            ])
+                ->where('id', $this->visible_to)
+                ->first(),
+
+            default => null,
+        };
     }
 }

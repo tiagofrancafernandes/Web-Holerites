@@ -458,7 +458,6 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->label('Disponível até')
                                     ->helperText('Data até a qual o item poderá ser visualizado')
                                     // ->disabled(fn(?Model $record) => !static::allowed(['manage'], $record))
-                                    ->required(fn(callable $get) => (bool) $get('public'))
                                     ->hidden(
                                         fn(?Model $record, callable $get) => !$get('public') || !static::allowed(
                                             ['manage'],
@@ -509,6 +508,26 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                     )
                     ->sortable()
                     ->formatStateUsing(fn(?Model $record) => $record?->status?->label())
+                    ->toggleable(
+                        isToggledHiddenByDefault: false,
+                    ),
+
+                Tables\Columns\TextColumn::make('visibleType')
+                    ->label(
+                        static::getTableAttributeLabel('visibleType')
+                    )
+                    ->sortable()
+                    ->formatStateUsing(fn(?Model $record) => $record?->visibleType?->label())
+                    ->toggleable(
+                        isToggledHiddenByDefault: false,
+                    ),
+
+                Tables\Columns\TextColumn::make('visible_to')
+                    ->label(
+                        static::getTableAttributeLabel('visibleTo')
+                    )
+                    ->sortable()
+                    ->formatStateUsing(fn(?Model $record) => $record?->visibleToValue()?->name)
                     ->toggleable(
                         isToggledHiddenByDefault: false,
                     ),
@@ -757,13 +776,50 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
             return $query;
         }
 
-        return $query->where('public', true)
-            ->where('release_date', '<', now())
-            ->where(function (Builder $query) {
-                return $query->whereNull('available_until')
-                    ->orWhere('available_until', '>', now());
-            })
-            ->where('status', DocumentStatus::PUBLISHED);
+        $query = $query->whereNotNull('visible_to');
+
+        $currentUser = auth()->user();
+
+        $onlyTo = filter_var(request()->query('onlyTo'), FILTER_VALIDATE_INT);
+
+        $onlyType = request()->query('onlyType');
+
+        $onlyType = DocumentVisibleToType::tryByValue($onlyType) ?: DocumentVisibleToType::USER;
+
+        /*
+        if (!$onlyType || ($onlyType === DocumentVisibleToType::USER)) {
+            $query = $query
+                ->where('visible_to_type', DocumentVisibleToType::USER)
+                ->where('visible_to', $currentUser?->id);
+        }
+
+        if ($onlyType && ($onlyType === DocumentVisibleToType::EVERYONE)) {
+            $query = $query->where('visible_to_type', DocumentVisibleToType::EVERYONE)
+                ->where('visible_to', DocumentVisibleToType::EVERYONE?->value);
+        }
+
+        if ($onlyType && ($onlyType === DocumentVisibleToType::GROUP)) {
+            $groups = $onlyTo ?: $currentUser?->groups()?->select('groups.id')?->pluck('id')?->toArray();
+            $query = $query->where('visible_to_type', DocumentVisibleToType::GROUP)
+                ->whereIn('visible_to', $groups);
+        }
+        */
+
+        // Backup query
+        $query = $query->where(function ($query) use ($currentUser, ) {
+            $groups = $currentUser?->groups()?->select('groups.id')?->pluck('id')?->toArray();
+
+            return $query->where(
+                fn($q1) => $q1->where('visible_to_type', DocumentVisibleToType::GROUP)
+                    ->whereIn('visible_to', $groups)
+            )
+                ->orWhere(
+                    fn($q2) => $q2->where('visible_to_type', DocumentVisibleToType::USER)
+                        ->where('visible_to', $currentUser?->id)
+                );
+        });
+
+        return $query;
     }
 
     /**
@@ -852,7 +908,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
     public static function mutateDataVisibleTo(array $data): array
     {
         $visibleToType = ($data['visible_to_type'] ?? null);
-        $visibleToType = is_numeric($visibleToType) ? DocumentVisibleToType::tryFrom((int) $visibleToType) : null;
+        $visibleToType = DocumentVisibleToType::tryByValue($visibleToType);
 
         if (!$visibleToType) {
             unset($data['visible_to_type']);
@@ -862,7 +918,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
             $visibleTo = match ($visibleToType) {
                 DocumentVisibleToType::EVERYONE => [
                     'visible_to_type' => DocumentVisibleToType::EVERYONE,
-                    'visible_to' => null,
+                    'visible_to' => DocumentVisibleToType::EVERYONE?->value,
                 ],
                 DocumentVisibleToType::USER => [
                     'visible_to_type' => DocumentVisibleToType::USER,
