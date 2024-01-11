@@ -17,18 +17,21 @@ enum DocumentVisibleToType: int
         return match ($value) {
             DocumentVisibleToType::EVERYONE,
             DocumentVisibleToType::EVERYONE?->value,
+            strval(DocumentVisibleToType::EVERYONE?->value),
             DocumentVisibleToType::EVERYONE?->name,
             DocumentVisibleToType::EVERYONE?->label(),
             strtolower(DocumentVisibleToType::EVERYONE?->name) => DocumentVisibleToType::EVERYONE,
 
             DocumentVisibleToType::USER,
             DocumentVisibleToType::USER?->value,
+            strval(DocumentVisibleToType::USER?->value),
             DocumentVisibleToType::USER?->name,
             DocumentVisibleToType::USER?->label(),
             strtolower(DocumentVisibleToType::USER?->name) => DocumentVisibleToType::USER,
 
             DocumentVisibleToType::GROUP,
             DocumentVisibleToType::GROUP?->value,
+            strval(DocumentVisibleToType::GROUP?->value),
             DocumentVisibleToType::GROUP?->name,
             DocumentVisibleToType::GROUP?->label(),
             strtolower(DocumentVisibleToType::GROUP?->name) => DocumentVisibleToType::GROUP,

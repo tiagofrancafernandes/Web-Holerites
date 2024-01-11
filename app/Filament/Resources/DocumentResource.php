@@ -6,20 +6,14 @@ use App\Filament\Resources\DocumentResource\Pages;
 use App\Models\Document;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use App\Filament\Resources\Traits\ModelLabel;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Notifications\Notification;
-use Filament\Tables\Filters\QueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 use Filament\Forms\Components\Actions\Action;
-use App\Filament\Resources\DocumentCategoryResource;
 use App\Models\DocumentCategory;
 use Filament\Forms\Components\FileUpload;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -35,7 +29,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use App\Enums\DocumentStatus;
 
-class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResourceBase
+class DocumentResource extends Extended\ExtendedResourceBase
 {
     use ModelLabel;
 
@@ -56,11 +50,11 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                     ->schema([
                         Forms\Components\Section::make()
                             ->disabled(
-                                fn(?Model $record): bool => !static::allowed(['manage'], $record)
+                                fn (?Model $record): bool => !static::allowed(['manage'], $record)
                                 || ($record?->status === DocumentStatus::PUBLISHED)
                             )
                             ->dehydrated(
-                                fn($state, ?Model $record): bool => ($record?->status === DocumentStatus::PUBLISHED)
+                                fn ($state, ?Model $record): bool => ($record?->status === DocumentStatus::PUBLISHED)
                             )
                             ->heading('Identificação')
                             ->schema([
@@ -74,11 +68,12 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                             return;
                                         }
 
-                                        $set('slug', Str::slug($state));
+                                        $set('slug', str($state)->slug()->prepend('-')->prepend(uniqid())->slug());
                                     })
                                     ->columnSpan(2),
 
                                 Forms\Components\TextInput::make('slug')
+                                    ->label('UID')
                                     ->disabled()
                                     ->dehydrated()
                                     ->required()
@@ -89,7 +84,6 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                             ->columns(4)
                             ->columnSpanFull(),
 
-
                         Forms\Components\Section::make()
                             ->heading('Documento')
                             ->schema([
@@ -97,15 +91,36 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->label('Sem arquivo')
                                     ->helperText('Útil em fase de edição ou quando tem apenas texto/nota.')
                                     ->live()
-                                    ->disabled(fn(?Model $record) => !static::allowed(['manage'], $record))
-                                    ->hidden(fn(?Model $record) => !static::allowed(['manage'], $record))
+                                    ->disabled(fn (?Model $record) => !static::allowed(['manage'], $record))
+                                    ->hidden(function (?Model $record, string $operation, $state, Forms\Set $set) {
+                                        if (
+                                            !in_array($operation, ['create', 'edit'])
+                                            || !static::allowed(['manage'], $record)
+                                            // || ($record?->status === DocumentStatus::PUBLISHED)
+                                        ) {
+                                            return true;
+                                        }
+
+                                        return false;
+                                    })
                                     ->default(false)
                                     ->dehydrated(false),
 
                                 FileUpload::make('document_file.path')
-                                    ->disabled(fn(?Model $record) => !static::allowed(['manage'], $record))
-                                    ->hidden(fn(callable $get) => (bool) $get('without_file'))
-                                    ->required(fn(callable $get) => !$get('without_file'))
+                                    ->disabled(fn (?Model $record) => !static::allowed(['manage'], $record))
+                                    ->hidden(function (?Model $record, string $operation, $state, Forms\Set $set, Forms\Get $get) {
+                                        if (
+                                            (bool) $get('without_file')
+                                            || !in_array($operation, ['create', 'edit'])
+                                            || !static::allowed(['manage'], $record)
+                                            || ($record?->status === DocumentStatus::PUBLISHED)
+                                        ) {
+                                            return true;
+                                        }
+
+                                        return false;
+                                    })
+                                    ->required(fn (callable $get) => !$get('without_file'))
                                     ->live()
                                     ->visibility('private')
                                     ->label('Arquivo')
@@ -159,13 +174,13 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                                     ])
                                     ->hidden(
-                                        fn(?Model $record) => boolval($record?->file),
+                                        fn (?Model $record) => boolval($record?->file),
                                     )
                                     ->columnSpanFull(),
 
                                 Forms\Components\View::make('filament.custom.forms.components.html-record-content')
                                     ->viewData([
-                                        'content' => fn(?Model $record) => html()->element('div')
+                                        'content' => fn (?Model $record) => html()->element('div')
                                             ->html(
                                                 implode(
                                                     '',
@@ -200,7 +215,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                                 )
                                             ),
                                     ])
-                                    ->hidden(fn(?Model $record) => !$record)
+                                    ->hidden(fn (?Model $record) => !$record)
                                     ->dehydrated(false)
                                     ->columnSpanFull(),
                             ])
@@ -217,7 +232,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->columnSpanFull(),
                             ])
                             ->disabled(
-                                fn(?Model $record) => !static::allowed(['manage'], $record),
+                                fn (?Model $record) => !static::allowed(['manage'], $record),
                             )
                             ->collapsible(),
 
@@ -232,16 +247,16 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                 Forms\Components\MarkdownEditor::make('internal_note')
                                     ->label('Nota interna')
                                     ->helperText('Esse texto não poderá ser visto pelo(s) colaborador(es)')
-                                    ->hidden(fn(callable $get) => !$get('show_internal_note'))
+                                    ->hidden(fn (callable $get) => !$get('show_internal_note'))
                                     ->live()
                                     ->maxLength(1500)
                                     ->columnSpanFull(),
                             ])
                             ->disabled(
-                                fn(?Model $record) => !static::allowed(['manage'], $record),
+                                fn (?Model $record) => !static::allowed(['manage'], $record),
                             )
                             ->hidden(
-                                fn(?Model $record) => !static::allowed(['manage'], $record),
+                                fn (?Model $record) => !static::allowed(['manage'], $record),
                             )
                             ->columns(2)
                             ->collapsible()
@@ -262,11 +277,8 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                     ->columnSpan(['lg' => 2]),
 
                 Forms\Components\Group::make()
-                    ->disabled(
-                        fn(?Model $record): bool => ($record?->status === DocumentStatus::PUBLISHED)
-                    )
                     ->dehydrated(
-                        fn($state, ?Model $record): bool => ($record?->status === DocumentStatus::PUBLISHED)
+                        fn ($state, ?Model $record): bool => ($record?->status === DocumentStatus::PUBLISHED)
                     )
                     ->schema([
                         Forms\Components\Section::make('Documento destinado a')
@@ -275,13 +287,13 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->label('Documento destinado a')
                                     ->options(
                                         collect(DocumentVisibleToType::cases())
-                                            ->mapWithKeys(fn($enum) => [$enum->value => $enum?->label()])
+                                            ->mapWithKeys(fn ($enum) => [$enum->value => $enum?->label()])
                                             ->toArray()
                                     )
                                     // ->default(DocumentVisibleToType::USER->value)
                                     ->required()
                                     ->hidden(
-                                        fn(?Model $record) => !static::allowed(['manage'], $record),
+                                        fn (?Model $record) => !static::allowed(['manage'], $record),
                                     )
                                     ->live()
                                     ->native(false),
@@ -290,7 +302,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                     ->label(__('User'))
                                     ->live()
                                     ->visible(
-                                        fn(callable $get) => in_array(
+                                        fn (callable $get) => in_array(
                                             $get('visible_to_type'),
                                             [
                                                 DocumentVisibleToType::USER,
@@ -300,30 +312,30 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                         )
                                     )
                                     ->required(
-                                        fn(callable $get) => boolval(
+                                        fn (callable $get) => boolval(
                                             $get('visible_to_type') == DocumentVisibleToType::USER->value
                                         )
                                     )
                                     ->searchable()
                                     ->getSearchResultsUsing(
-                                        fn(string $search): array => User::where('name', 'like', "%{$search}%")
+                                        fn (string $search): array => User::where('name', 'like', "%{$search}%")
                                             ->limit(30)
                                             ->pluck('name', 'id')
                                             ->toArray()
                                     )
                                     ->preload()
                                     ->options(
-                                        fn(): array => User::limit(10)
+                                        fn (): array => User::limit(10)
                                             ->pluck('name', 'id')
                                             ->toArray()
                                     )
-                                    ->getOptionLabelUsing(fn($value): ?string => User::find($value)?->name),
+                                    ->getOptionLabelUsing(fn ($value): ?string => User::find($value)?->name),
 
                                 Forms\Components\Select::make('visible_to_group')
                                     ->label(__('Group'))
                                     ->live()
                                     ->visible(
-                                        fn(callable $get) => in_array(
+                                        fn (callable $get) => in_array(
                                             $get('visible_to_type'),
                                             [
                                                 DocumentVisibleToType::GROUP,
@@ -333,32 +345,31 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                         )
                                     )
                                     ->required(
-                                        fn(callable $get) => boolval(
+                                        fn (callable $get) => boolval(
                                             $get('visible_to_type') == DocumentVisibleToType::GROUP->value
                                         )
                                     )
                                     ->searchable()
                                     ->getSearchResultsUsing(
-                                        fn(string $search): array => Group::where('name', 'like', "%{$search}%")
+                                        fn (string $search): array => Group::where('name', 'like', "%{$search}%")
                                             ->limit(30)
                                             ->pluck('name', 'id')
                                             ->toArray()
                                     )
                                     ->preload()
                                     ->options(
-                                        fn(): array => Group::limit(10)
+                                        fn (): array => Group::limit(10)
                                             ->pluck('name', 'id')
                                             ->toArray()
                                     )
-                                    ->getOptionLabelUsing(fn($value): ?string => Group::find($value)?->name),
+                                    ->getOptionLabelUsing(fn ($value): ?string => Group::find($value)?->name),
                             ])
-                            ->hidden(
-                                fn(?Model $record) => !static::allowed(['manage'], $record),
-                            ),
+                            ->disabled(fn (?Model $record): bool => ($record?->status === DocumentStatus::PUBLISHED))
+                            ->hidden(fn (?Model $record) => !static::allowed(['manage'], $record)),
 
                         Forms\Components\Section::make('Associações')
                             ->hidden(
-                                fn(?Model $record) => !static::allowed(['manage'], $record),
+                                fn (?Model $record) => !static::allowed(['manage'], $record),
                             )
                             ->schema([
                                 // Forms\Components\Select::make('shop_brand_id')
@@ -366,7 +377,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                 //     ->searchable()
                                 //     ->hiddenOn(ProductsRelationManager::class),
 
-                                Forms\Components\Select::make('category_id')
+                                Forms\Components\Select::make('document_category_id')
                                     ->label('Categoria')
                                     ->relationship('category', 'name')
                                     ->searchable()
@@ -415,58 +426,107 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                                 //             ->modalButton('Create customer')
                                 //             ->modalWidth('lg');
                                 //     }),
-                            ]),
+                            ])
+                            ->disabled(fn (?Model $record): bool => ($record?->status === DocumentStatus::PUBLISHED)),
 
                         Forms\Components\Section::make('Controle')
+                            ->hidden(
+                                fn (?Model $record) => !static::allowed(['manage'], $record),
+                            )
                             ->schema([
-                                Forms\Components\Select::make('status')
-                                    ->options(
-                                        collect(DocumentStatus::cases())
-                                            ->mapWithKeys(fn($enum) => [$enum->value => $enum?->label()])
-                                            ->toArray()
-                                    )
-                                    ->default(DocumentStatus::DRAFT->value)
-                                    ->required()
-                                    ->hidden(
-                                        fn(?Model $record) => !static::allowed(['manage'], $record),
-                                    )
-                                    ->native(false),
-
-                                Forms\Components\Toggle::make('public')
-                                    ->label('Disponível para visualização?')
+                                Forms\Components\Toggle::make('enable_edit_view_status')
+                                    ->label('Alterar controle de visualização')
+                                    // ->helperText('O documento só poder ser visto se o status for "publicado"')
                                     ->live()
-                                    ->helperText('Se esse item poderá ser visualizado')
+                                    // ->disabled(fn(?Model $record) => !static::allowed(['manage'], $record))
+                                    ->hidden(function (?Model $record, string $operation, $state, Forms\Set $set) {
+                                        if (
+                                            !in_array($operation, ['edit'])
+                                            || !static::allowed(['manage'], $record)
+                                            || ($record?->status !== DocumentStatus::PUBLISHED)
+                                        ) {
+                                            return true;
+                                        }
+
+                                        return false;
+                                    })
                                     ->default(false)
-                                    ->hidden(
-                                        fn(?Model $record) => !static::allowed(['manage'], $record),
-                                    ),
+                                    ->dehydrated(false),
 
-                                Forms\Components\DatePicker::make('release_date')
-                                    ->label('Disponível a partir de')
-                                    ->helperText('Data a partir da qual (quando publicado) poderá ser visualizado')
-                                    ->default(now())
-                                    // ->disabled(fn(?Model $record) => !static::allowed(['manage'], $record))
-                                    ->required(fn(callable $get) => (bool) $get('public'))
-                                    ->hidden(
-                                        fn(?Model $record, callable $get) => !$get('public') || !static::allowed(
-                                            ['manage'],
-                                            $record
-                                        ),
-                                    ),
+                                Forms\Components\Group::make()
+                                    ->dehydrated(
+                                        fn (?Model $record, callable $get): bool => ($record?->status !== DocumentStatus::PUBLISHED)
+                                        || ($record?->status !== DocumentStatus::PUBLISHED) && boolval($get('enable_edit_view_status'))
+                                    )
+                                    ->disabled(
+                                        fn (?Model $record, callable $get): bool => !(
+                                            $record?->status === DocumentStatus::PUBLISHED &&
+                                            boolval($get('enable_edit_view_status'))
+                                        )
+                                    )
+                                    ->schema([
+                                        Forms\Components\Select::make('status')
+                                            ->options(
+                                                collect(DocumentStatus::cases())
+                                                    ->mapWithKeys(fn ($enum) => [$enum->value => $enum?->label()])
+                                                    ->toArray()
+                                            )
+                                            ->default(DocumentStatus::DRAFT->value)
+                                            ->required()
+                                            ->live()
+                                        ->preload()
+                                        ->native(false),
 
-                                Forms\Components\DatePicker::make('available_until')
-                                    ->label('Disponível até')
-                                    ->helperText('Data até a qual o item poderá ser visualizado')
-                                    // ->disabled(fn(?Model $record) => !static::allowed(['manage'], $record))
-                                    ->hidden(
-                                        fn(?Model $record, callable $get) => !$get('public') || !static::allowed(
-                                            ['manage'],
-                                            $record
-                                        ),
-                                    ),
+                                        Forms\Components\Toggle::make('public')
+                                            ->label('Disponível para visualização?')
+                                            ->live()
+                                            ->helperText('Se esse item poderá ser visualizado')
+                                            ->default(false)
+                                            ->disabled(
+                                                fn (?Model $record, callable $get): bool => (
+                                                    $record?->status === DocumentStatus::PUBLISHED
+                                                ) && !boolval(
+                                                    $get('enable_edit_view_status')
+                                                )
+                                            )
+                                            ->hidden(
+                                                fn (?Model $record) => !static::allowed(['manage'], $record),
+                                            ),
+
+                                        Forms\Components\DatePicker::make('release_date')
+                                            ->label('Disponível a partir de')
+                                            ->helperText('Data a partir da qual (quando publicado) poderá ser visualizado')
+                                            ->default(now())
+                                            // ->disabled(fn(?Model $record) => !static::allowed(['manage'], $record))
+                                            ->required(fn (callable $get) => (bool) $get('public'))
+                                            ->disabled(
+                                                fn (?Model $record, callable $get): bool => (
+                                                    $record?->status === DocumentStatus::PUBLISHED
+                                                ) && !boolval(
+                                                    $get('enable_edit_view_status')
+                                                )
+                                            )
+                                            ->hidden(
+                                                fn (?Model $record, callable $get) => !$get('public') || !static::allowed(
+                                                    ['manage'],
+                                                    $record
+                                                ),
+                                            ),
+
+                                        Forms\Components\DatePicker::make('available_until')
+                                            ->label('Disponível até')
+                                            ->helperText('Data até a qual o item poderá ser visualizado')
+                                            // ->disabled(fn(?Model $record) => !static::allowed(['manage'], $record))
+                                            ->hidden(
+                                                fn (?Model $record, callable $get) => !$get('public') || !static::allowed(
+                                                    ['manage'],
+                                                    $record
+                                                ),
+                                            ),
+                                    ]),
                             ])
                             ->hidden(
-                                fn(?Model $record) => !static::allowed(['manage'], $record),
+                                fn (?Model $record) => !static::allowed(['manage'], $record),
                             ),
                     ])
                     ->columnSpan(['lg' => 1]),
@@ -507,7 +567,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                         static::getTableAttributeLabel('status')
                     )
                     ->sortable()
-                    ->formatStateUsing(fn(?Model $record) => $record?->status?->label())
+                    ->formatStateUsing(fn (?Model $record) => $record?->status?->label())
                     ->toggleable(
                         isToggledHiddenByDefault: false,
                     ),
@@ -517,7 +577,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                         static::getTableAttributeLabel('visibleType')
                     )
                     ->sortable()
-                    ->formatStateUsing(fn(?Model $record) => $record?->visibleType?->label())
+                    ->formatStateUsing(fn (?Model $record) => $record?->visibleType?->label())
                     ->toggleable(
                         isToggledHiddenByDefault: false,
                     ),
@@ -527,7 +587,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                         static::getTableAttributeLabel('visibleTo')
                     )
                     ->sortable()
-                    ->formatStateUsing(fn(?Model $record) => $record?->visibleToValue()?->name)
+                    ->formatStateUsing(fn (?Model $record) => $record?->visibleToValue()?->name)
                     ->toggleable(
                         isToggledHiddenByDefault: false,
                     ),
@@ -559,7 +619,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                     ),
             ])
             ->filtersTriggerAction(
-                fn(\Filament\Tables\Actions\Action $action) => $action
+                fn (\Filament\Tables\Actions\Action $action) => $action
                     ->button()
                     ->label(__('Filter')),
             )
@@ -601,11 +661,11 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ])
@@ -616,12 +676,12 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                 Tables\Actions\Action::make('open_file')
                     ->label('Abrir anexo')
                     ->url(
-                        url: fn(?Model $record) => route('storage_documents.show', $record?->file?->path),
+                        url: fn (?Model $record) => route('storage_documents.show', $record?->file?->path),
                         shouldOpenInNewTab: true,
                     )
                     ->icon('feathericon-external-link')
                     ->hidden(
-                        fn(?Model $record) => !$record?->file
+                        fn (?Model $record) => !$record?->file
                         || !(
                             ($record?->status === DocumentStatus::PUBLISHED)
                             || static::allowed(['manage'], $record)
@@ -630,7 +690,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                 Tables\Actions\Action::make('download_file')
                     ->label('Baixar anexo')
                     ->url(
-                        url: fn(?Model $record) => route(
+                        url: fn (?Model $record) => route(
                             'storage_documents.show',
                             [
                                 $record?->file?->path,
@@ -641,7 +701,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                     )
                     ->icon('feathericon-download-cloud')
                     ->hidden(
-                        fn(?Model $record) => !$record?->file,
+                        fn (?Model $record) => !$record?->file,
                     ),
             ])
             ->bulkActions([
@@ -673,6 +733,7 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                     ->inlineLabel(),
 
                 Infolists\Components\TextEntry::make('slug')
+                    ->label('UID')
                     ->inlineLabel(),
 
                 Infolists\Components\TextEntry::make('status')
@@ -686,21 +747,21 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
 
                 Infolists\Components\TextEntry::make('storage_file_id')
                     ->url(
-                        url: fn(?Model $record) => $record?->file?->url,
+                        url: fn (?Model $record) => $record?->file?->url,
                         shouldOpenInNewTab: true,
                     )
                     ->label('Documento')
-                    ->formatStateUsing(fn() => 'Abrir documento')
+                    ->formatStateUsing(fn () => 'Abrir documento')
                     ->icon('feathericon-external-link')
                     ->inlineLabel(),
 
                 Infolists\Components\TextEntry::make('created_by')
                     ->label('Cadastrado por')
-                    ->formatStateUsing(fn(?Model $record) => $record?->creator?->name)
+                    ->formatStateUsing(fn (?Model $record) => $record?->creator?->name)
                     ->inlineLabel(),
 
                 Infolists\Components\TextEntry::make('public')
-                    ->formatStateUsing(fn(?Model $record) => static::userCanManage() && $record?->public ? 'Sim' : 'Não')
+                    ->formatStateUsing(fn (?Model $record) => static::userCanManage() && $record?->public ? 'Sim' : 'Não')
                     ->inlineLabel(),
 
                 Infolists\Components\TextEntry::make('category.name')
@@ -716,13 +777,17 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
                     ->collapsed()
                     ->persistCollapsed(false)
                     ->id('infolist_internal_note')
-                    ->hidden(fn(?Model $record) => !static::allowed(['manage'], $record))
+                    ->hidden(fn (?Model $record) => !static::allowed(['manage'], $record))
                     ->columnSpanFull(),
 
                 Section::make('Nota')
-                    ->description('Nota que será visível ao(s) colaborador(es)')
+                    ->description(
+                        fn (?Model $record) => static::allowed(['manage'], $record)
+                            ? 'Nota que será visível ao(s) colaborador(es)' : ''
+                    )
                     ->schema([
                         Infolists\Components\TextEntry::make('public_note')
+                            ->hiddenLabel()
                             ->columnSpanFull(),
                     ])
                     ->collapsible()
@@ -806,15 +871,15 @@ class DocumentResource extends \App\Filament\Resources\Extended\ExtendedResource
         */
 
         // Backup query
-        $query = $query->where(function ($query) use ($currentUser, ) {
+        $query = $query->where(function ($query) use ($currentUser) {
             $groups = $currentUser?->groups()?->select('groups.id')?->pluck('id')?->toArray();
 
             return $query->where(
-                fn($q1) => $q1->where('visible_to_type', DocumentVisibleToType::GROUP)
+                fn ($q1) => $q1->where('visible_to_type', DocumentVisibleToType::GROUP)
                     ->whereIn('visible_to', $groups)
             )
                 ->orWhere(
-                    fn($q2) => $q2->where('visible_to_type', DocumentVisibleToType::USER)
+                    fn ($q2) => $q2->where('visible_to_type', DocumentVisibleToType::USER)
                         ->where('visible_to', $currentUser?->id)
                 );
         });

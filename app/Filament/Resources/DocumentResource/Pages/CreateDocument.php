@@ -23,10 +23,9 @@ class CreateDocument extends CreateRecord
     {
         $currentUserId = auth()->user()->id;
         $data['created_by'] = $currentUserId;
+        $data['document_category_id'] ??= $data['category_id'] ?? null;
 
-        $data = DocumentResource::mutateDataVisibleTo($data);
-
-        return $data;
+        return DocumentResource::mutateDataVisibleTo($data);
     }
 
     protected function afterCreate(): void

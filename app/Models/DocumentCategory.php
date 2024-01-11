@@ -95,7 +95,7 @@ class DocumentCategory extends Model
             ->remember(
                 $cacheKey,
                 60,
-                fn() => DB::table('documents')
+                fn () => DB::table('documents')
                     ->select([
                         ...$categoriesToSelect,
                         'documents.document_category_id',
@@ -114,7 +114,7 @@ class DocumentCategory extends Model
                             })
                             ->where('status', DocumentStatus::PUBLISHED?->value);
                     })
-                    ->where("{$categoriesAlias}.show_on_tab_filter", true)
+                    // ->whereNot("{$categoriesAlias}.show_on_tab_filter", false)
                     ->leftJoin(
                         "document_categories as {$categoriesAlias}",
                         "{$categoriesAlias}.id",

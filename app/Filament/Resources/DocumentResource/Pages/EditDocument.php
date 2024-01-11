@@ -40,13 +40,10 @@ class EditDocument extends EditRecord
         $data['visible_to_type'] = $visibleToType ?: ($data['visible_to_type'] ?? null);
 
         if ($visibleToType === DocumentVisibleToType::GROUP) {
-            unset($data['visible_to_user'], $data['visible_to_group']);
             $data['visible_to_group'] = $data['visible_to'] ?? null;
-
         }
 
         if ($visibleToType === DocumentVisibleToType::USER) {
-            unset($data['visible_to_user'], $data['visible_to_group']);
             $data['visible_to_user'] = $data['visible_to'] ?? null;
         }
 
@@ -66,11 +63,10 @@ class EditDocument extends EditRecord
      */
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $data['created_by'] = $data['created_by'] ?? auth()->user()->id;
+        $data['created_by'] ??= auth()->user()->id;
+        $data['document_category_id'] ??= $data['category_id'] ?? null;
 
-        $data = DocumentResource::mutateDataVisibleTo($data);
-
-        return $data;
+        return DocumentResource::mutateDataVisibleTo($data);
     }
 
     protected function afterSave(): void

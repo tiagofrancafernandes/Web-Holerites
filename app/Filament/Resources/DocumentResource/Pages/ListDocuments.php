@@ -7,10 +7,7 @@ use App\Filament\Resources\DocumentResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Components\Tab;
-use App\Enums\DocumentStatus;
 use App\Models\DocumentCategory;
-use Filament\Support\Enums\IconPosition;
-use Illuminate\Database\Eloquent\Model;
 use Livewire\Attributes\Url;
 use Illuminate\Contracts\Support\Htmlable;
 
@@ -39,7 +36,7 @@ class ListDocuments extends ListRecords
                 ->url(static::getResource()::getUrl('manage'))
                 ->label(static::getResource()::getActionLabel('manage'))
                 ->hidden(
-                    fn() => !static::getResource()::allowed('manage')
+                    fn () => !static::getResource()::allowed('manage')
                 ),
 
             Actions\CreateAction::make()
@@ -60,13 +57,12 @@ class ListDocuments extends ListRecords
 
         return collect($categories)
             ->mapWithKeys(function (object $category) {
-
                 $tab = Tab::make()
                     ->label($category?->name)
-                    ->badge($category?->count)
+                    // ->badge($category?->count)
                     ->query(
-                    fn($query) => $query->where('document_category_id', $category->id)
-                );
+                        fn ($query) => $query->where('document_category_id', $category->id)
+                    );
 
                 if ($category?->icon) {
                     $tab = $tab->icon($category?->icon);
@@ -82,7 +78,7 @@ class ListDocuments extends ListRecords
                     ->badge(
                         $categories
                             ?->pluck('count')
-                            ?->sum()?: ''
+                            ?->sum() ?: ''
                     ),
                 'ALL'
             )
