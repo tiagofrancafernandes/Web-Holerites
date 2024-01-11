@@ -7,9 +7,12 @@ use Closure;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
+use Illuminate\Contracts\Support\Htmlable;
 
 class IconPicker extends \Guava\FilamentIconPicker\Forms\IconPicker
 {
+    protected Closure|string|Htmlable|null $placeholderText = null;
+
     private function loadIcons(): Collection
     {
         $iconsHash = md5(serialize($this->getSets()));
@@ -26,16 +29,18 @@ class IconPicker extends \Guava\FilamentIconPicker\Forms\IconPicker
                 $sets = collect($iconsFactory->all());
 
                 if ($allowedSets) {
-                    $sets = $sets->filter(fn($value, $key) => in_array($key, $allowedSets));
+                    $sets = $sets->filter(fn ($value, $key) => in_array($key, $allowedSets));
                 }
 
                 return [$sets, $allowedIcons, $disallowedIcons];
-            });
+            }
+        );
 
         $icons = [];
 
         foreach ($sets as $set) {
             $prefix = $set['prefix'];
+
             foreach ($set['paths'] as $path) {
                 foreach (File::files($path) as $file) {
                     $filename = $prefix . '-' . $file->getFilenameWithoutExtension();
@@ -43,6 +48,7 @@ class IconPicker extends \Guava\FilamentIconPicker\Forms\IconPicker
                     if ($allowedIcons && !in_array($filename, $allowedIcons)) {
                         continue;
                     }
+
                     if ($disallowedIcons && in_array($filename, $disallowedIcons)) {
                         continue;
                     }
@@ -53,5 +59,20 @@ class IconPicker extends \Guava\FilamentIconPicker\Forms\IconPicker
         }
 
         return collect($icons);
+    }
+    public function placeholderText(Closure|string|Htmlable|null $placeholderText): static
+    {
+        $this->placeholderText = $placeholderText;
+
+        return $this;
+    }
+
+    public function getPlaceholderText(): string
+    {
+        if ($this->placeholderText) {
+            return $this->evaluate($this->placeholderText);
+        }
+
+        return __('No icon selected');
     }
 }

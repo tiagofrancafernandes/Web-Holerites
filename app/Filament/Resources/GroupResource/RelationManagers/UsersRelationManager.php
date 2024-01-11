@@ -9,9 +9,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Infolists\Components\Section;
 use App\Filament\Resources\GroupResource;
 use App\Filament\Resources\UserResource;
 use Illuminate\Database\Eloquent\Model;
@@ -55,8 +52,10 @@ class UsersRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\AttachAction::make()
+                \App\Filament\Forms\Tables\Actions\AttachAction::make()
+                    ->attachMultiple()
                     ->label(GroupResource::getActionLabel('attach')),
+
                 Tables\Actions\CreateAction::make()
                     ->label(UserResource::getActionLabel('create')),
             ])
@@ -75,26 +74,25 @@ class UsersRelationManager extends RelationManager
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ])
+            ]);
 
-            // ->headerActions([
-            //     Tables\Actions\CreateAction::make(),
-            //     Tables\Actions\AttachAction::make(),
-            // ])
-            // ->actions([
-            //     // Tables\Actions\EditAction::make()
-            //     //     ->label(static::getResource()::getActionLabel('edit')),
-            //     Tables\Actions\DetachAction::make(),
-            //     // Tables\Actions\DeleteAction::make()
-            //     ->label(static::getActionLabel('delete')),
-            // ])
-            // ->bulkActions([
-            //     Tables\Actions\BulkActionGroup::make([
-            //         Tables\Actions\DetachBulkAction::make(),
-            //         // Tables\Actions\DeleteBulkAction::make(),
-            //     ]),
-            // ])
-        ;
+        // ->headerActions([
+        //     Tables\Actions\CreateAction::make(),
+        //     \App\Filament\Forms\Tables\Actions\AttachAction::make(),
+        // ])
+        // ->actions([
+        //     // Tables\Actions\EditAction::make()
+        //     //     ->label(static::getResource()::getActionLabel('edit')),
+        //     Tables\Actions\DetachAction::make(),
+        //     // Tables\Actions\DeleteAction::make()
+        //     ->label(static::getActionLabel('delete')),
+        // ])
+        // ->bulkActions([
+        //     Tables\Actions\BulkActionGroup::make([
+        //         Tables\Actions\DetachBulkAction::make(),
+        //         // Tables\Actions\DeleteBulkAction::make(),
+        //     ]),
+        // ])
     }
 
     public function infolist(Infolist $infolist): Infolist
