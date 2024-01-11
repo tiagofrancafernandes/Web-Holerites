@@ -11,6 +11,21 @@ use Illuminate\Contracts\Support\Htmlable;
 
 class IconPicker extends \Guava\FilamentIconPicker\Forms\IconPicker
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this
+            ->placeholder(
+                fn () => $this->view(
+                    'filament-icon-picker::placeholder',
+                    [
+                        'placeholderText' => $this->getPlaceholderText(),
+                    ]
+                )->render()
+            );
+    }
+
     protected Closure|string|Htmlable|null $placeholderText = null;
 
     private function loadIcons(): Collection
