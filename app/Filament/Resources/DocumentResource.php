@@ -229,7 +229,7 @@ class DocumentResource extends Extended\ExtendedResourceBase
                         Forms\Components\Section::make()
                             ->heading('Nota')
                             ->schema([
-                                Forms\Components\MarkdownEditor::make('public_note')
+                                Forms\Components\RichEditor::make('public_note')
                                     ->label('Nota')
                                     ->helperText('Esse texto poderá ser visto pelo(s) colaborador(es)')
                                     ->maxLength(1500)
@@ -248,7 +248,7 @@ class DocumentResource extends Extended\ExtendedResourceBase
                                     ->live()
                                     ->dehydrated(false),
 
-                                Forms\Components\MarkdownEditor::make('internal_note')
+                                Forms\Components\RichEditor::make('internal_note')
                                     ->label('Nota interna')
                                     ->helperText('Esse texto não poderá ser visto pelo(s) colaborador(es)')
                                     ->hidden(fn (callable $get) => !$get('show_internal_note'))
@@ -792,6 +792,11 @@ class DocumentResource extends Extended\ExtendedResourceBase
                     )
                     ->schema([
                         Infolists\Components\TextEntry::make('public_note')
+                        ->formatStateUsing(
+                            fn (?Model $record) => html()
+                                ->element('div')
+                                ->html($record->public_note)
+                        )
                             ->hiddenLabel()
                             ->columnSpanFull(),
                     ])
@@ -858,6 +863,10 @@ class DocumentResource extends Extended\ExtendedResourceBase
         $onlyType = request()->query('onlyType');
 
         $onlyType = DocumentVisibleToType::tryByValue($onlyType) ?: DocumentVisibleToType::USER;
+
+        $query = $query->where('status', DocumentStatus::PUBLISHED?->value);
+        $query = $query->where('public', true);
+        $query = $query->whereNotNull('release_date')->where('release_date', '<', now());
 
         /*
         if (!$onlyType || ($onlyType === DocumentVisibleToType::USER)) {
