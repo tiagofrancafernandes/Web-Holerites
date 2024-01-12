@@ -7,9 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\StorageFile;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use App\Enums\DocumentVisibleToType;
 
@@ -20,7 +18,7 @@ class Document extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    use InteractsWithMedia;
+    // use InteractsWithMedia;
 
     protected $fillable = [
         'title',
@@ -61,20 +59,30 @@ class Document extends Model
         return $this->file()?->first();
     }
 
+    // /**
+    //  * Get the file associated with the Document
+    //  *
+    //  * @return ?\Illuminate\Database\Eloquent\Builder
+    //  */
+    // public function file()
+    // {
+    //     return $this->storage_file_id ? StorageFile::where('id', $this->storage_file_id) : null;
+    // }
+
     /**
      * Get the file associated with the Document
      *
-     * @return ?\Illuminate\Database\Eloquent\Builder
+     * @return HasOne
      */
-    public function file()
+    public function file(): HasOne
     {
-        return $this->storage_file_id ? StorageFile::where('id', $this->storage_file_id) : null;
+        return $this->hasOne(StorageFile::class, 'id', 'storage_file_id');
     }
 
     /**
      * Get the creator associated with the Document
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function creator(): BelongsTo
     {

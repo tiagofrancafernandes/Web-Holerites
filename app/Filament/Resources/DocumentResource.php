@@ -97,6 +97,7 @@ class DocumentResource extends Extended\ExtendedResourceBase
                                             !in_array($operation, ['create', 'edit'])
                                             || !static::allowed(['manage'], $record)
                                             // || ($record?->status === DocumentStatus::PUBLISHED)
+                                            || $record?->file
                                         ) {
                                             return true;
                                         }
@@ -185,7 +186,8 @@ class DocumentResource extends Extended\ExtendedResourceBase
                                                 implode(
                                                     '',
                                                     [
-                                                        Tables\Actions\Action::make('open_file')
+                                                        $record?->file
+                                                        ? Tables\Actions\Action::make('open_file')
                                                             ->label('Abrir anexo')
                                                             ->url(
                                                                 url: route('storage_documents.show', $record?->file?->path),
@@ -194,8 +196,10 @@ class DocumentResource extends Extended\ExtendedResourceBase
                                                             ->icon('feathericon-external-link')
                                                             ->hidden(
                                                                 !$record?->file,
-                                                            )->toHtml(),
-                                                        Tables\Actions\Action::make('download_file')
+                                                            )->toHtml() : '',
+
+                                                        $record?->file
+                                                        ? Tables\Actions\Action::make('download_file')
                                                             ->label('Baixar anexo')
                                                             ->url(
                                                                 url: route(
@@ -210,7 +214,7 @@ class DocumentResource extends Extended\ExtendedResourceBase
                                                             ->icon('feathericon-download-cloud')
                                                             ->hidden(
                                                                 !$record?->file,
-                                                            )->toHtml(),
+                                                            )->toHtml() : '',
                                                     ]
                                                 )
                                             ),
@@ -459,9 +463,9 @@ class DocumentResource extends Extended\ExtendedResourceBase
                                         || ($record?->status !== DocumentStatus::PUBLISHED) && boolval($get('enable_edit_view_status'))
                                     )
                                     ->disabled(
-                                        fn (?Model $record, callable $get): bool => !(
+                                        fn (?Model $record, callable $get): bool => (
                                             $record?->status === DocumentStatus::PUBLISHED &&
-                                            boolval($get('enable_edit_view_status'))
+                                            !boolval($get('enable_edit_view_status'))
                                         )
                                     )
                                     ->schema([
@@ -474,8 +478,8 @@ class DocumentResource extends Extended\ExtendedResourceBase
                                             ->default(DocumentStatus::DRAFT->value)
                                             ->required()
                                             ->live()
-                                        ->preload()
-                                        ->native(false),
+                                            ->preload()
+                                            ->native(false),
 
                                         Forms\Components\Toggle::make('public')
                                             ->label('Disponível para visualização?')
@@ -672,6 +676,7 @@ class DocumentResource extends Extended\ExtendedResourceBase
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label(static::getActionLabel('edit')),
+
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\Action::make('open_file')
                     ->label('Abrir anexo')
@@ -783,7 +788,7 @@ class DocumentResource extends Extended\ExtendedResourceBase
                 Section::make('Nota')
                     ->description(
                         fn (?Model $record) => static::allowed(['manage'], $record)
-                            ? 'Nota que será visível ao(s) colaborador(es)' : ''
+                        ? 'Nota que será visível ao(s) colaborador(es)' : ''
                     )
                     ->schema([
                         Infolists\Components\TextEntry::make('public_note')
@@ -835,7 +840,10 @@ class DocumentResource extends Extended\ExtendedResourceBase
         /**
          * @var Builder  $query
          */
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()
+            ->with([
+                'file' => fn ($query) => $query,
+            ]);
 
         if (static::userCanManage()) {
             return $query;
