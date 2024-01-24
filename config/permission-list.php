@@ -46,6 +46,7 @@ return [
         'document::delete',
         'document::publish',
         'document::unpublish',
+        'document::listAllStatus',
     ],
     'document_status' => [
         'document_status::see.DRAFT',
