@@ -566,6 +566,19 @@ class DocumentResource extends Extended\ExtendedResourceBase
                         isToggledHiddenByDefault: false,
                     ),
 
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label(
+                        static::getTableAttributeLabel('category')
+                    )
+                    ->sortable()
+                    ->searchable(
+                        isIndividual: true,
+                        isGlobal: true,
+                    )
+                    ->toggleable(
+                        isToggledHiddenByDefault: false,
+                    ),
+
                 Tables\Columns\TextColumn::make('status')
                     ->label(
                         static::getTableAttributeLabel('status')
@@ -580,7 +593,7 @@ class DocumentResource extends Extended\ExtendedResourceBase
                     ->label(
                         static::getTableAttributeLabel('visibleType')
                     )
-                    ->sortable()
+                    ->sortable(['visible_to_type'])
                     ->formatStateUsing(fn (?Model $record) => $record?->visibleType?->label())
                     ->toggleable(
                         isToggledHiddenByDefault: false,
