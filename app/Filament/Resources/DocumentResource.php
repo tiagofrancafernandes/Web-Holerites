@@ -864,9 +864,22 @@ class DocumentResource extends Extended\ExtendedResourceBase
 
         $onlyType = DocumentVisibleToType::tryByValue($onlyType) ?: DocumentVisibleToType::USER;
 
-        $query = $query->where('status', DocumentStatus::PUBLISHED?->value);
+        $query = $query->whereIn('status', [
+            // 'document_status::see.DRAFT',
+            // 'document_status::see.INVALID',
+            // 'document_status::see.VALIDATED',
+            // 'document_status::see.UNDER_ANALYSIS',
+            // 'document_status::see.REJECTED',
+            // 'document_status::see.APPROVED_FOR_PUBLICATION',
+            // 'document_status::see.AWAITING_REVIEW',
+            // 'document_status::see.PUBLISHED',
+
+            DocumentStatus::PUBLISHED?->value,
+        ]);
+
         $query = $query->where('public', true);
         $query = $query->whereNotNull('release_date')->where('release_date', '<', now());
+        $query = $query->whereNotNull('available_until')->orWhere('available_until', '>', now());
 
         /*
         if (!$onlyType || ($onlyType === DocumentVisibleToType::USER)) {
