@@ -53,6 +53,7 @@ return [
         'table' => [
             'id' => 'ID',
             'title' => 'Título',
+            'category' => 'Categoria',
             'note' => 'Nota',
             'status' => 'Status',
             'release_date' => 'Disponível a partir de',
@@ -60,6 +61,8 @@ return [
             'internal_note' => 'Nota interna',
             'public_note' => 'Nota pública',
             'storage_file_id' => 'Arquivo',
+            'visibleType' => 'Tipo visível',
+            'visibleTo' => ' Visível para',
             'created_at' => 'Criado em',
             'updated_at' => 'Atualizado em',
             'deleted_at' => 'Inativado em',
