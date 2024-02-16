@@ -19,9 +19,24 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Hasnayeen\Themes\ThemesPlugin;
 use Swis\Filament\Backgrounds\FilamentBackgroundsPlugin;
+use Filament\Support\Facades\FilamentAsset;
+use Filament\Support\Assets\Js;
+use Filament\Support\Assets\Css;
 
 class AdminPanelProvider extends PanelProvider
 {
+    public function boot(): void
+    {
+        FilamentAsset::register([
+            // More in: ./vendor/filament/support/docs/02-assets.md
+            // Css::make('example-external-stylesheet', 'https://example.com/external.css'),
+            // Css::make('example-local-stylesheet', asset('css/local.css')),
+
+            Js::make('horizontal-mouse-wheel', asset('js/libs/horizontal-mouse-wheel.js')),
+            Js::make('after-DOMContentLoaded', asset('js/after-DOMContentLoaded.js')),
+        ]);
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -85,8 +100,8 @@ class AdminPanelProvider extends PanelProvider
                     ),
 
                 FilamentBackgroundsPlugin::make()
-                // ->showAttribution(false)
-                ->remember(900),
+                    // ->showAttribution(false)
+                    ->remember(900),
 
                 // View Laravel logs (to use, need implements protection)
                 // \FilipFonal\FilamentLogManager\FilamentLogManager::make(),

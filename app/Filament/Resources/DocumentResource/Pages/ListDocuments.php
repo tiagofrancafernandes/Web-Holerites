@@ -56,9 +56,10 @@ class ListDocuments extends ListRecords
         $categories = DocumentCategory::tabList($updateCache);
 
         return collect($categories)
+            ->filter(fn (object $category) => boolval($category->slug))
             ->mapWithKeys(function (object $category) {
                 $tab = Tab::make()
-                    ->label($category?->name)
+                    ->label($category?->name ?: '??')
                     // ->badge($category?->count)
                     ->query(
                         fn ($query) => $query->where('document_category_id', $category->id)
@@ -69,7 +70,7 @@ class ListDocuments extends ListRecords
                 }
 
                 return [
-                    $category->slug => $tab,
+                    $category->slug ?: 'no-category' => $tab,
                 ];
             })
             ->prepend(
