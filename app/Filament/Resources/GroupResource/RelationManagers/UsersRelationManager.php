@@ -66,13 +66,19 @@ class UsersRelationManager extends RelationManager
                         'record' => $record?->id,
                     ]),
                 ),
-                Tables\Actions\DeleteAction::make()
-                    ->label(UserResource::getActionLabel('delete')),
+
+                // Tables\Actions\DeleteAction::make()
+                //     ->label(UserResource::getActionLabel('delete')),
+
+                Tables\Actions\DetachAction::make()
+                    ->label(__('models.User.Relations.groups.detach')),
+
                 Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DetachBulkAction::make(),
                 ]),
             ]);
 

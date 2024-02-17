@@ -5,6 +5,13 @@ return [
         'texts' => [
             'edition_disabled_because_is_canonical' => 'Edição desativada pois o item é canônico',
         ],
+        'Relations' => [
+            'actions' => [
+                'title' => 'Relacionamentos',
+                'attach' => 'Vincular',
+                'detach' => 'Desvincular',
+            ],
+        ],
     ],
     'fallback' => [
         'actions' => [
@@ -62,10 +69,17 @@ return [
             'public_note' => 'Nota pública',
             'storage_file_id' => 'Arquivo',
             'visibleType' => 'Visão nível',
+            'visible_type' => 'Visão nível',
+            'visible_to_type' => 'Visão nível',
             'visibleTo' => ' Destinado a',
+            'visible_to' => ' Destinado a',
             'created_at' => 'Criado em',
             'updated_at' => 'Atualizado em',
             'deleted_at' => 'Inativado em',
+        ],
+        'filters' => [
+            'status' => 'Status',
+            'visible_to_type' => 'Visão nível',
         ],
     ],
     'DocumentCategory' => [
@@ -176,7 +190,7 @@ return [
             'groups' => [
                 'title' => 'Grupos',
                 'attach' => 'Vincular grupo',
-                'detach' => 'Desvincular grupo',
+                'detach' => 'Desvincular',
             ],
         ],
         'table' => [

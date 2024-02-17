@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'EVERYONE' => 'Geral',
-    'USER' => 'Usuário',
-    'GROUP' => 'Grupo',
+    'EVERYONE' => 'Para todos',
+    'USER' => 'Por usuário',
+    'GROUP' => 'Por grupo',
 ];

@@ -641,15 +641,25 @@ class DocumentResource extends Extended\ExtendedResourceBase
                     ->label(__('Filter')),
             )
             ->filters([
-                // Tables\Filters\SelectFilter::make('status')
-                //     ->label(
-                //         static::getFilterLabel('status')
-                //     )
-                //     ->options([
-                //         0 => 'Waiting',
-                //         1 => 'In conversation',
-                //         2 => 'Waiting contact',
-                //     ]),
+                Tables\Filters\SelectFilter::make('status')
+                    ->label(
+                        static::getFilterLabel('status')
+                    )
+                    ->options(
+                        collect(DocumentStatus::cases())
+                            ->mapWithKeys(fn ($enum) => [$enum->value => $enum?->label()])
+                            ->toArray()
+                    ),
+
+                Tables\Filters\SelectFilter::make('visible_to_type')
+                    ->label(
+                        static::getFilterLabel('visible_to_type')
+                    )
+                    ->options(
+                        collect(DocumentVisibleToType::cases())
+                            ->mapWithKeys(fn ($enum) => [$enum->value => $enum?->label()])
+                            ->toArray()
+                    ),
 
                 // Tables\Filters\SelectFilter::make('document_category_id')
                 //     ->label('Categoria')
@@ -873,7 +883,12 @@ class DocumentResource extends Extended\ExtendedResourceBase
 
         $onlyTo = filter_var(request()->query('onlyTo'), FILTER_VALIDATE_INT);
 
-        $onlyType = request()->query('onlyType');
+        $onlyStatus = filter_var(
+            request()->query('onlyStatus') ?: request()->input('tableFilters.status.value'),
+            FILTER_VALIDATE_INT
+        ) ?: null;
+
+        $onlyType = request()->query('onlyType') ?: request()->input('tableFilters.visible_to_type.value');
 
         $onlyType = DocumentVisibleToType::tryByValue($onlyType) ?: DocumentVisibleToType::USER;
 
@@ -892,40 +907,24 @@ class DocumentResource extends Extended\ExtendedResourceBase
 
         $query = $query->where('public', true);
         $query = $query->whereNotNull('release_date')->where('release_date', '<', now());
-        $query = $query->whereNotNull('available_until')->orWhere('available_until', '>', now());
+        $query = $query->where(
+            fn ($qr) =>
+            $qr->whereNull('available_until')->orWhere('available_until', '>=', now())
+        );
 
-        /*
-        if (!$onlyType || ($onlyType === DocumentVisibleToType::USER)) {
-            $query = $query
+        $query = match ($onlyType) {
+            DocumentVisibleToType::USER => $query
                 ->where('visible_to_type', DocumentVisibleToType::USER)
-                ->where('visible_to', $currentUser?->id);
-        }
-
-        if ($onlyType && ($onlyType === DocumentVisibleToType::EVERYONE)) {
-            $query = $query->where('visible_to_type', DocumentVisibleToType::EVERYONE)
-                ->where('visible_to', DocumentVisibleToType::EVERYONE?->value);
-        }
-
-        if ($onlyType && ($onlyType === DocumentVisibleToType::GROUP)) {
-            $groups = $onlyTo ?: $currentUser?->groups()?->select('groups.id')?->pluck('id')?->toArray();
-            $query = $query->where('visible_to_type', DocumentVisibleToType::GROUP)
-                ->whereIn('visible_to', $groups);
-        }
-        */
-
-        // Backup query
-        $query = $query->where(function ($query) use ($currentUser) {
-            $groups = $currentUser?->groups()?->select('groups.id')?->pluck('id')?->toArray();
-
-            return $query->where(
-                fn ($q1) => $q1->where('visible_to_type', DocumentVisibleToType::GROUP)
-                    ->whereIn('visible_to', $groups)
-            )
-                ->orWhere(
-                    fn ($q2) => $q2->where('visible_to_type', DocumentVisibleToType::USER)
-                        ->where('visible_to', $currentUser?->id)
-                );
-        });
+                ->where('visible_to', $currentUser?->id),
+            DocumentVisibleToType::EVERYONE => $query->where('visible_to_type', DocumentVisibleToType::EVERYONE)
+                ->where('visible_to', DocumentVisibleToType::EVERYONE?->value),
+            DocumentVisibleToType::GROUP => $query->where('visible_to_type', DocumentVisibleToType::GROUP)
+                ->whereIn(
+                    'visible_to',
+                    $onlyTo ?: $currentUser?->groups()?->select('groups.id')?->pluck('id')?->toArray()
+                ),
+            default => $query,
+        };
 
         return $query;
     }
